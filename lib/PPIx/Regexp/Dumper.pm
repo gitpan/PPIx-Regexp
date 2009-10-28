@@ -44,7 +44,7 @@ use Scalar::Util qw{ blessed looks_like_number };
 use PPIx::Regexp;
 use PPIx::Regexp::Tokenizer;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 =head2 new
 
@@ -508,6 +508,10 @@ sub PPIx::Regexp::Token::__PPIX_DUMPER__dump {
 	push @rslt, sprintf '0x%02x', $ord;
     }
     if ( $dumper->{verbose} ) {
+	if ( $self->isa( 'PPIx::Regexp::Token::Reference' )
+	    && defined( my $abs = $self->absolute() ) ) {
+	    push @rslt, "absolute=$abs";
+	}
 	foreach my $method (
 	    qw{significant can_be_quantified is_quantifier } ) {
 	    $self->$method() and push @rslt, $method;
