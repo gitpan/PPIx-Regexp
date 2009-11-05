@@ -7,7 +7,34 @@ use lib qw{ inc };
 
 use PPIx::Regexp::Test;
 
-plan 'no_plan';
+plan( tests => 684 );
+
+my $is_ascii = ord( "\t" ) == 9;	# per perlebcdic
+
+my $have_charnames;
+
+BEGIN {
+    eval {
+	require charnames;
+	charnames->import( qw{ :full } );
+	$have_charnames = 1;
+    };
+}
+
+tokenize( {}, '-notest' ); # We don't know how to tokenize a hash reference.
+equals  ( undef, 'We did not get an object' );
+value   ( errstr => [], 'HASH not supported' );
+
+parse   ( {}, '-notest' ); # If we can't tokenize it, we surely can't parse it.
+equals  ( undef, 'We did not get an object' );
+value   ( errstr => [], 'HASH not supported' );
+
+parse   ( 'fubar' );	# We can't make anything of this.
+value   ( failures => [], 1 );
+class   ( 'PPIx::Regexp' );
+value   ( capture_names => [], undef );
+value   ( max_capture_number => [], undef );
+value   ( source => [], 'fubar' );
 
 {
 
@@ -15,6 +42,24 @@ plan 'no_plan';
     # the object references we have held go away when we are done.
 
     parse   ( '/ ( 1 2(?#comment)) /x' );
+    value   ( failures => [], 0 );
+    value   ( errstr => [], undef );
+    class   ( 'PPIx::Regexp' );
+    value   ( elements => [], 3 );
+
+    choose  ( first_element => [] );
+    class   ( 'PPIx::Regexp::Token::Structure' );
+    content ( '' );
+
+    choose  ( last_element => [] );
+    class   ( 'PPIx::Regexp::Token::Modifier' );
+    content ( 'x' );
+
+    choose  ( tokens => [] );
+    count   ( 13 );
+    navigate( 7 );
+    class   ( 'PPIx::Regexp::Token::Literal' );
+    content ( '2' );
 
     my $lit1 = choose( find_first => 'Token::Literal' );
     class   ( 'PPIx::Regexp::Token::Literal' );
@@ -70,14 +115,41 @@ plan 'no_plan';
     my $top = navigate( top => [] );
     class   ( 'PPIx::Regexp' );
     true    ( ancestor_of => $lit1 );
+    true    ( contains    => $lit1 );
+    false   ( ancestor_of => undef );
 
     navigate( $lit1 );
     true    ( descendant_of => $top );
+    false   ( descendant_of => $lit2 );
+    false   ( ancestor_of   => $lit2 );
+    false   ( descendant_of => undef );
 
     choose  ( find => 'Token::Literal' );
     count   ( 2 );
     navigate( -1 );
     equals  ( $lit2, 'The last literal is the second one' );
+
+    choose  ( find_parents => 'Token::Literal' );
+    count   ( 1 );
+
+    my $capt = navigate( 0 );
+    class   ( 'PPIx::Regexp::Structure::Capture' );
+    value   ( elements => [], 7 );
+    value   ( name => [], undef );
+
+    navigate( $capt, first_element => [] );
+    class   ( 'PPIx::Regexp::Token::Structure' );
+    content ( '(' );
+
+    navigate( $capt, last_element => [] );
+    class   ( 'PPIx::Regexp::Token::Structure' );
+    content ( ')' );
+
+    navigate( $capt, schildren => [] );
+    count   ( 2 );
+    navigate( 1 );
+    class   ( 'PPIx::Regexp::Token::Literal' );
+    content ( '2' );
 
     choose  ( find => sub {
 	    ref $_[1] eq 'PPIx::Regexp::Token::Literal'
@@ -96,9 +168,26 @@ plan 'no_plan';
     navigate( parent => [], schild => -2 );
     equals  ( $lit1, 'The -2nd significant child is the first literal' );
 
+    choose  ( previous_sibling => [] );
+    equals  ( undef, 'The top-level object has no previous sibling' );
+
+    choose  ( sprevious_sibling => [] );
+    equals  ( undef, 'The top-level object has no significant previous sib' );
+
+    choose  ( next_sibling => [] );
+    equals  ( undef, 'The top-level object has no next sibling' );
+
+    choose  ( snext_sibling => [] );
+    equals  ( undef, 'The top-level object has no significant next sibling' );
+
+    choose  ( find => [ {} ] );
+    equals  ( undef, 'Can not find a hash reference' );
+
+    navigate( $lit2 );
+    value   ( nav => [], [ child => [1], child => [0], child => [2] ] );
+
 }
 
-SKIP:
 {
 
     # The cache tests get done in their own scope to ensure the objects
@@ -121,12 +210,50 @@ SKIP:
 
     cache_count( 1 );
 
+    PPIx::Regexp->flush_cache( 42 );	# Anything not a PPIx::Regexp
+
+    cache_count( 1 );			# Nothing happens
+
+    my $o9 = PPIx::Regexp->new_from_cache( '/foo/' );
+
+    cache_count( 1 );			# Not cached.
+
+    $o9->flush_cache();
+
+    cache_count( 1 );			# Not flushed, either.
+
     PPIx::Regexp->flush_cache();
+
+    cache_count();
+
+    $o1 = PPIx::Regexp->new_from_cache( $m );
+
+    cache_count( 1 );
+
+    $o1->flush_cache();
 
     cache_count();
 
 }
 
+tokenize( '/\\n\\04\\xff\\x{0c}\\N{LATIN SMALL LETTER E}\\N{U+61}/' );
+count   ( 10 );
+choose  ( 2 );
+value   ( ordinal => [], ord "\n" );
+choose  ( 3 );
+value   ( ordinal => [], ord "\04" );
+choose  ( 4 );
+value   ( ordinal => [], ord "\xff" );
+choose  ( 5 );
+value   ( ordinal => [], ord "\x{0c}" );
+SKIP: {
+    $have_charnames
+	or skip( 1, "unable to load the charnames pragma" );
+    choose  ( 6 );
+    value   ( ordinal => [], ord 'e' );
+}
+choose  ( 7 );
+value   ( ordinal => [], ord 'a' );
 
 tokenize( '//smx' );
 count   ( 4 );
@@ -252,9 +379,13 @@ class   ( 'PPIx::Regexp::Token::Backtrack' );
 content ( '(*PRUNE:foo)' );
 value   ( perl_version_introduced => [], '5.010' );
 
-tokenize( 's/foo\\Kbar/baz/' );
-count   ( 15 );
-choose  ( 5 );
+tokenize( 's/\\bfoo\\Kbar/baz/' );
+count   ( 16 );
+choose  ( 2 );
+class   ( 'PPIx::Regexp::Token::Assertion' );
+content ( '\\b' );
+value   ( perl_version_introduced => [], '5.006' );
+choose  ( 6 );
 class   ( 'PPIx::Regexp::Token::Assertion' );
 content ( '\\K' );
 value   ( perl_version_introduced => [], '5.010' );
@@ -272,6 +403,26 @@ choose  ( 3 );
 class   ( 'PPIx::Regexp::Token::GroupType::BranchReset' );
 content ( '?|' );
 value   ( perl_version_introduced => [], '5.010' );
+
+parse   ( '/[a-z]/' );
+value   ( failures => [], 0 );
+class   ( 'PPIx::Regexp' );
+count   ( 3 );
+choose  ( regular_expression => [] );
+true    ( interpolates => [] );
+choose  ( find_first => 'PPIx::Regexp::Structure::CharClass' );
+class   ( 'PPIx::Regexp::Structure::CharClass' );
+false   ( negated => [] );
+
+parse   ( 'm\'[^a-z]\'' );
+value   ( failures => [], 0 );
+class   ( 'PPIx::Regexp' );
+count   ( 3 );
+choose  ( regular_expression => [] );
+false   ( interpolates => [] );
+choose  ( find_first => 'PPIx::Regexp::Structure::CharClass' );
+class   ( 'PPIx::Regexp::Structure::CharClass' );
+true    ( negated => [] );
 
 parse   ( '/(?|(?<baz>foo(wah))|(bar))(hoo)/' );
 value   ( failures => [], 0 );
@@ -691,6 +842,7 @@ count   ( 1 );
 choose  ( child => 1, child => 0 );
 class   ( 'PPIx::Regexp::Structure::Switch' );
 count   ( 4 );
+value   ( perl_version_introduced => [], '5.006' );
 choose  ( child => 1, child => 0, child => 0 );
 class   ( 'PPIx::Regexp::Token::Condition' );
 content ( '(1)' );
@@ -709,6 +861,7 @@ count   ( 1 );
 choose  ( child => 1, child => 0 );
 class   ( 'PPIx::Regexp::Structure::Switch' );
 count   ( 4 );
+value   ( perl_version_introduced => [], '5.010' );
 choose  ( child => 1, child => 0, child => 0 );
 class   ( 'PPIx::Regexp::Token::Condition' );
 content ( '(R1)' );
@@ -727,6 +880,7 @@ count   ( 1 );
 choose  ( child => 1, child => 0 );
 class   ( 'PPIx::Regexp::Structure::Switch' );
 count   ( 4 );
+value   ( perl_version_introduced => [], '5.010' );
 choose  ( child => 1, child => 0, child => 0 );
 class   ( 'PPIx::Regexp::Token::Condition' );
 content ( '(<bar>)' );
@@ -745,6 +899,7 @@ count   ( 1 );
 choose  ( child => 1, child => 0 );
 class   ( 'PPIx::Regexp::Structure::Switch' );
 count   ( 4 );
+value   ( perl_version_introduced => [], '5.010' );
 choose  ( child => 1, child => 0, child => 0 );
 class   ( 'PPIx::Regexp::Token::Condition' );
 content ( '(\'bar\')' );
@@ -763,6 +918,7 @@ count   ( 1 );
 choose  ( child => 1, child => 0 );
 class   ( 'PPIx::Regexp::Structure::Switch' );
 count   ( 4 );
+value   ( perl_version_introduced => [], '5.010' );
 choose  ( child => 1, child => 0, child => 0 );
 class   ( 'PPIx::Regexp::Token::Condition' );
 content ( '(R&bar)' );
@@ -780,6 +936,7 @@ count   ( 1 );
 choose  ( child => 1, child => 0 );
 class   ( 'PPIx::Regexp::Structure::Switch' );
 count   ( 4 );
+value   ( perl_version_introduced => [], '5.010' );
 choose  ( child => 1, child => 0, child => 0 );
 class   ( 'PPIx::Regexp::Token::Condition' );
 content ( '(DEFINE)' );
@@ -790,6 +947,9 @@ value   ( number => [], 0 );
 
 tokenize( '/(?p{ code })/' );
 count   ( 8 );
+choose  ( 0 );
+class   ( 'PPIx::Regexp::Token::Structure' );
+content ( '' );
 value   ( perl_version_removed => [], undef );
 choose  ( 3 );
 class   ( 'PPIx::Regexp::Token::GroupType::Code' );
@@ -825,6 +985,229 @@ choose  ( child => 1, child => 0, type => 0 );
 class   ( 'PPIx::Regexp::Token::GroupType::Code' );
 content ( '?p' );
 value   ( perl_version_removed => [], '5.010' );
+
+parse   ( 'qr{foo}smx' );
+value   ( failures => [], 0 );
+class   ( 'PPIx::Regexp' );
+choose  ( regular_expression => [] );
+class   ( 'PPIx::Regexp::Structure::Regexp' );
+value   ( delimiters => [], '{}' );
+choose  ( top => [] );
+class   ( 'PPIx::Regexp' );
+value   ( delimiters => [], '{}' );
+value   ( delimiters => 1, undef );
+
+parse   ( 's<foo>[bar]smx' );
+value   ( failures => [], 0 );
+class   ( 'PPIx::Regexp' );
+choose  ( regular_expression => [] );
+class   ( 'PPIx::Regexp::Structure::Regexp' );
+value   ( delimiters => [], '<>' );
+choose  ( top => [], replacement => [] );
+class   ( 'PPIx::Regexp::Structure::Replacement' );
+value   ( delimiters => [], '[]' );
+choose  ( top => [] );
+class   ( 'PPIx::Regexp' );
+value   ( delimiters => 0, '<>' );
+value   ( delimiters => 1, '[]' );
+
+parse   ( 's/foo/bar/smx' );
+value   ( failures => [], 0 );
+class   ( 'PPIx::Regexp' );
+value   ( delimiters => 0, '//' );
+value   ( delimiters => 1, '//' );
+
+tokenize( '/foo/', encoding => 'utf8' );
+value   ( failures => [], 0 );
+count   ( 7 );
+choose  ( 2 );
+class   ( 'PPIx::Regexp::Token::Literal' );
+content ( 'f' );
+
+SKIP: {
+    $is_ascii
+	or skip(
+	'Non-ASCII machines will have different ordinal values',
+	10,
+    );
+
+    tokenize( '/foo/', '--notokens' );
+    dump_result( ordinal => 1, tokens => 1,
+	<<'EOD', q<Tokenization of '/foo/'> );
+PPIx::Regexp::Token::Structure	''
+PPIx::Regexp::Token::Delimiter	'/'
+PPIx::Regexp::Token::Literal	'f'	0x66
+PPIx::Regexp::Token::Literal	'o'	0x6f
+PPIx::Regexp::Token::Literal	'o'	0x6f
+PPIx::Regexp::Token::Delimiter	'/'
+PPIx::Regexp::Token::Modifier	''
+EOD
+
+    parse   ( '/(foo[a-z\\d])/x' );
+    dump_result( verbose => 1,
+	<<'EOD', q<Verbose parse of '/(foo[a-z\\d])/x'> );
+PPIx::Regexp	failures=0
+  PPIx::Regexp::Token::Structure	''	significant
+  PPIx::Regexp::Structure::Regexp	/ ... /
+    PPIx::Regexp::Structure::Capture	( ... )	number=1	name undef
+      PPIx::Regexp::Token::Literal	'f'	0x66	significant	can_be_quantified
+      PPIx::Regexp::Token::Literal	'o'	0x6f	significant	can_be_quantified
+      PPIx::Regexp::Token::Literal	'o'	0x6f	significant	can_be_quantified
+      PPIx::Regexp::Structure::CharClass	[ ... ]
+        PPIx::Regexp::Node::Range
+          PPIx::Regexp::Token::Literal	'a'	0x61	significant	can_be_quantified
+          PPIx::Regexp::Token::Operator	'-'	significant	can_be_quantified
+          PPIx::Regexp::Token::Literal	'z'	0x7a	significant	can_be_quantified
+        PPIx::Regexp::Token::CharClass::Simple	'\\d'	significant	can_be_quantified
+  PPIx::Regexp::Token::Modifier	'x'	significant
+EOD
+
+    parse   ( '/(?<foo>\\d+)/' );
+    dump_result( perl_version => 1,
+	<<'EOD', q<Perl versions in '/(?<foo>\\d+)/'> );
+PPIx::Regexp	failures=0	5.010 <= $]
+  PPIx::Regexp::Token::Structure	''	5.006 <= $]
+  PPIx::Regexp::Structure::Regexp	/ ... /	5.010 <= $]
+    PPIx::Regexp::Structure::NamedCapture	(?<foo> ... )	5.010 <= $]
+      PPIx::Regexp::Token::CharClass::Simple	'\\d'	5.006 <= $]
+      PPIx::Regexp::Token::Quantifier	'+'	5.006 <= $]
+  PPIx::Regexp::Token::Modifier	''	5.006 <= $]
+EOD
+
+    tokenize( '/[a-z]/', '--notokens' );
+    dump_result( test => 1, verbose => 1, tokens => 1,
+	<<'EOD', q<Test tokenization of '/[a-z]/'> );
+tokenize( '/[a-z]/' );
+count   ( 9 );
+choose  ( 0 );
+class   ( 'PPIx::Regexp::Token::Structure' );
+content ( '' );
+true    ( significant => [] );
+false   ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( 1 );
+class   ( 'PPIx::Regexp::Token::Delimiter' );
+content ( '/' );
+true    ( significant => [] );
+false   ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( 2 );
+class   ( 'PPIx::Regexp::Token::Structure' );
+content ( '[' );
+true    ( significant => [] );
+false   ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( 3 );
+class   ( 'PPIx::Regexp::Token::Literal' );
+content ( 'a' );
+true    ( significant => [] );
+true    ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( 4 );
+class   ( 'PPIx::Regexp::Token::Operator' );
+content ( '-' );
+true    ( significant => [] );
+true    ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( 5 );
+class   ( 'PPIx::Regexp::Token::Literal' );
+content ( 'z' );
+true    ( significant => [] );
+true    ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( 6 );
+class   ( 'PPIx::Regexp::Token::Structure' );
+content ( ']' );
+true    ( significant => [] );
+true    ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( 7 );
+class   ( 'PPIx::Regexp::Token::Delimiter' );
+content ( '/' );
+true    ( significant => [] );
+false   ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( 8 );
+class   ( 'PPIx::Regexp::Token::Modifier' );
+content ( '' );
+true    ( significant => [] );
+false   ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+EOD
+
+    parse   ( '/[a-z]/' );
+    dump_result( test => 1, verbose => 1,
+	<<'EOD', q<Test of '/[a-z]/'> );
+parse   ( '/[a-z]/' );
+value   ( failures => [], 0);
+class   ( 'PPIx::Regexp' );
+count   ( 3 );
+choose  ( child => 0 );
+class   ( 'PPIx::Regexp::Token::Structure' );
+content ( '' );
+true    ( significant => [] );
+false   ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( child => 1 );
+class   ( 'PPIx::Regexp::Structure::Regexp' );
+count   ( 1 );
+choose  ( child => 1, start => [] );
+count   ( 1 );
+choose  ( child => 1, start => 0 );
+class   ( 'PPIx::Regexp::Token::Delimiter' );
+content ( '/' );
+choose  ( child => 1, type => [] );
+count   ( 0 );
+choose  ( child => 1, finish => [] );
+count   ( 1 );
+choose  ( child => 1, finish => 0 );
+class   ( 'PPIx::Regexp::Token::Delimiter' );
+content ( '/' );
+choose  ( child => 1, child => 0 );
+class   ( 'PPIx::Regexp::Structure::CharClass' );
+count   ( 1 );
+choose  ( child => 1, child => 0, start => [] );
+count   ( 1 );
+choose  ( child => 1, child => 0, start => 0 );
+class   ( 'PPIx::Regexp::Token::Structure' );
+content ( '[' );
+choose  ( child => 1, child => 0, type => [] );
+count   ( 0 );
+choose  ( child => 1, child => 0, finish => [] );
+count   ( 1 );
+choose  ( child => 1, child => 0, finish => 0 );
+class   ( 'PPIx::Regexp::Token::Structure' );
+content ( ']' );
+choose  ( child => 1, child => 0, child => 0 );
+class   ( 'PPIx::Regexp::Node::Range' );
+count   ( 3 );
+choose  ( child => 1, child => 0, child => 0, child => 0 );
+class   ( 'PPIx::Regexp::Token::Literal' );
+content ( 'a' );
+true    ( significant => [] );
+true    ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( child => 1, child => 0, child => 0, child => 1 );
+class   ( 'PPIx::Regexp::Token::Operator' );
+content ( '-' );
+true    ( significant => [] );
+true    ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( child => 1, child => 0, child => 0, child => 2 );
+class   ( 'PPIx::Regexp::Token::Literal' );
+content ( 'z' );
+true    ( significant => [] );
+true    ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+choose  ( child => 2 );
+class   ( 'PPIx::Regexp::Token::Modifier' );
+content ( '' );
+true    ( significant => [] );
+false   ( can_be_quantified => [] );
+false   ( is_quantifier => [] );
+EOD
+
+}
 
 finis   ();
 

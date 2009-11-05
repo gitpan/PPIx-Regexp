@@ -38,19 +38,10 @@ use base qw{ PPIx::Regexp::Token };
 use Params::Util 0.25 qw{ _INSTANCE };
 use PPIx::Regexp::Constant qw{ $TOKEN_LITERAL };
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
-
-# Return true to be included in the token scan. This determination
-# should be good for the life of the tokenizer. It is called as a static
-# method with two arguments: the tokenizer object and the mode name. Use
-# of the latter is pre-deprecated.
-# sub __PPIX_TOKEN__scan_me {
-#     my ( $class, $tokenizer, $mode ) = @_;
-#     return $tokenizer->interpolates();
-# };
 
 # These will be intercepted by PPIx::Regexp::Token::Literal if they are
 # really literals, so here we may process them unconditionally.

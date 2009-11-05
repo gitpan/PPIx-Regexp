@@ -41,7 +41,7 @@ use Scalar::Util qw{ refaddr weaken };
 
 use PPIx::Regexp::Constant qw{ $MINIMUM_PERL };
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 =head2 ancestor_of
 
@@ -280,13 +280,6 @@ sub nav {
     my $parent = $self->_parent() or return;
 
     return ( $parent->nav(), $parent->_nav( $self ) );
-}
-
-# Make sure we are an instance of PPI::Element.
-
-sub _instance {
-    my ( $self, $element ) = @_;
-    return _INSTANCE( $element, __PACKAGE__ );
 }
 
 # Find our location and index among the parent's children. If not found,

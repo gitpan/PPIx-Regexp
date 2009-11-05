@@ -38,7 +38,7 @@ use PPIx::Regexp::Token::Unknown		();
 use PPIx::Regexp::Token::Whitespace		();
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 {
     # Names of classes containing tokenization machinery. There are no
@@ -111,8 +111,7 @@ our $VERSION = '0.002';
 	foreach my $class ( @args ) {
 
 	    $class->can( $handler ) or next;
-	    my $rslt = $class->__PPIX_TOKEN__scan_me( $self, $mode );
-	    $rslt and push @found, $class;
+	    push @found, $class;
 
 	}
 

@@ -38,7 +38,7 @@ use base qw{ PPIx::Regexp::Token };
 
 use PPIx::Regexp::Constant qw{ $COOKIE_CLASS $MINIMUM_PERL $TOKEN_LITERAL };
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -55,15 +55,6 @@ our $VERSION = '0.002';
     }
 
 }
-
-# Return true to be included in the token scan. This determination
-# should be good for the life of the tokenizer. It is called as a static
-# method with two arguments: the tokenizer object and the mode name. Use
-# of the latter is pre-deprecated.
-# sub __PPIX_TOKEN__scan_me {
-#     my ( $class, $tokenizer, $mode ) = @_;
-#     return $tokenizer->interpolates();
-# };
 
 # By logic we should handle '$' here. But
 # PPIx::Regexp::Token::Interpolation needs to process it to see if it is

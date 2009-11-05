@@ -7,12 +7,13 @@ use base qw{ Exporter };
 
 use Params::Util 0.25 qw{ _INSTANCE };
 use PPIx::Regexp;
+use PPIx::Regexp::Dumper;
 use PPIx::Regexp::Element;
 use PPIx::Regexp::Tokenizer;
 use Scalar::Util qw{ looks_like_number refaddr };
 use Test::More 0.40;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 our @EXPORT_OK = qw{
     cache_count
@@ -20,12 +21,14 @@ our @EXPORT_OK = qw{
     class
     content
     count
+    dump_result
     false
     finis
     equals
     navigate
     parse
     plan
+    skip
     tokenize
     true
     value
@@ -33,7 +36,20 @@ our @EXPORT_OK = qw{
 
 our @EXPORT = @EXPORT_OK;	## no critic (ProhibitAutomaticExportation)
 
-my ( $parse, $kind, @nav, $nav, $obj );
+my (
+    $initial_class,	# For static methods; set by parse() or tokenize()
+    $kind,		# of thing; set by parse() or tokenize()
+    $nav,		# Navigation used to get to current object, as a
+			#    string.
+    $obj,		# Current object:
+    			#    PPIx::Regexp::Tokenizer if set by tokenize(),
+			#    PPIx::Regexp if set by parse(), or
+			#    PPIx::Regexp::Element is set by navigate().
+    $parse,		# Result of parse:
+    			#    array ref if set by tokenize(), or
+			#    PPIx::Regexp object if set by parse()
+    $result,		# Operation result.
+);
 
 sub cache_count {		## no critic (RequireArgUnpacking)
     my ( $expect ) = @_;
@@ -41,7 +57,8 @@ sub cache_count {		## no critic (RequireArgUnpacking)
     $obj = undef;
     $parse = undef;
     _pause();
-    @_ = ( PPIx::Regexp->_cache_size(), $expect,
+    $result = PPIx::Regexp->_cache_size();
+    @_ = ( $result, $expect,
 	"Should be $expect leftover cache contents" );
     goto &is;
 }
@@ -52,31 +69,9 @@ sub choose {
     return navigate( @args );
 }
 
-# quote a string.
-sub _safe {
-    my @args = @_;
-    my @rslt;
-    foreach my $item ( @args ) {
-	if ( _INSTANCE( $item, 'PPIx::Regexp::Element' ) ) {
-	    $item = $item->content();
-	}
-	if ( ! defined $item ) {
-	    push @rslt, 'undef';
-	} elsif ( ref $item eq 'ARRAY' ) {
-	    push @rslt, join( ' ', '[', _safe( @{ $item } ), ']' );
-	} elsif ( looks_like_number( $item ) ) {
-	    push @rslt, $item;
-	} else {
-	    $item =~ s/ ( [\\'] ) /\\$1/smxg;
-	    push @rslt, "'$item'";
-	}
-    }
-    return join( ', ', @rslt );
-}
-
 sub class {		## no critic (RequireArgUnpacking)
-    my @args = @_;
-    my $class = pop @args;
+    my ( $class ) = @_;
+    $result = ref $obj || $obj;
     if ( defined $class ) {
 	@_ = ( $obj, $class, "$kind $nav" );
 	goto &isa_ok;
@@ -89,15 +84,15 @@ sub class {		## no critic (RequireArgUnpacking)
 sub content {		## no critic (RequireArgUnpacking)
     my @args = @_;
     my $expect = pop @args;
-    my $content;
-    defined $obj and $content = $obj->content();
+    $result = undef;
+    defined $obj and $result = $obj->content();
     my $safe;
-    if ( defined $content ) {
-	($safe = $content) =~ s/([\\'])/\\$1/smxg;
+    if ( defined $result ) {
+	($safe = $result) =~ s/([\\'])/\\$1/smxg;
     } else {
 	$safe = 'undef';
     }
-    @_ = ( $content, $expect, "$kind $nav content '$safe'" );
+    @_ = ( $result, $expect, "$kind $nav content '$safe'" );
     goto &is;
 }
 
@@ -105,16 +100,40 @@ sub count {		## no critic (RequireArgUnpacking)
     my ( @args ) = @_;
     my $expect = pop @args;
     if ( ref $parse eq 'ARRAY' ) {
-	@_ = ( scalar @{ $parse }, $expect, "Expect $expect tokens" );
+	$result = @{ $parse };
+	@_ = ( $result, $expect, "Expect $expect tokens" );
     } elsif ( ref $obj eq 'ARRAY' ) {
-	@_ = ( scalar @{ $obj }, $expect, "Expect $expect tokens" );
+	$result = @{ $obj };
+	@_ = ( $result, $expect, "Expect $expect tokens" );
     } elsif ( $obj->can( 'children' ) ) {
-	@_ = ( scalar $obj->children(), $expect, "Expect $expect children" );
+	$result = $obj->children();
+	@_ = ( $result, $expect, "Expect $expect children" );
     } else {
-	@_ = ( $obj->can( 'children' ), ref( $obj ) . "->can( 'children')" );
+	$result = $obj->can( 'children' );
+	@_ = ( $result, ref( $obj ) . "->can( 'children')" );
 	goto &ok;
     }
     goto &is;
+}
+
+sub dump_result {
+    my ( $opt, @args ) = _parse_constructor_args( { test => 1 }, @_ );
+    if ( $opt->{test} ) {
+	my ( $expect, $name ) = splice @args, -2;
+	my $got = PPIx::Regexp::Dumper->new( $obj, @args )->string();
+	@_ = ( $got, $expect, $name );
+	goto &is;
+    } elsif ( _INSTANCE( $result, 'PPIx::Regexp::Tokenizer' ) ||
+	_INSTANCE( $result, 'PPIx::Regexp::Element' ) ) {
+	diag( PPIx::Regexp::Dumper->new( $obj, @args )->string() );
+    } elsif ( eval { require YAML; 1; } ) {
+	diag( "Result dump:\n", YAML::Dump( $result ) );
+    } elsif ( eval { require Data::Dumper; 1 } ) {
+	diag( "Result dump:\n", Data::Dumper::Dumper( $result ) );
+    } else {
+	diag( "Result dump unavailable.\n" );
+    }
+    return;
 }
 
 sub equals {		## no critic (RequireArgUnpacking)
@@ -138,31 +157,32 @@ sub equals {		## no critic (RequireArgUnpacking)
 }
 
 sub false {		## no critic (RequireArgUnpacking)
-    my @args = @_;
-    my ( $method, $args ) = splice @args, -2;
+    my ( $method, $args ) = @_;
     ref $args eq 'ARRAY' or $args = [ $args ];
     my $class = ref $obj;
     if ( $obj->can( $method ) ) {
-	@_ = ( ! $obj->$method( @{ $args || [] } ),
-	    "$class->$method() is false" );
+	$result = $obj->$method( @{ $args } );
+	@_ = ( ! $result, "$class->$method() is false" );
     } else {
+	$result = undef;
 	@_ = ( undef, "$class->$method() exists" );
     }
     goto &ok;
 }
 
 sub finis {		## no critic (RequireArgUnpacking)
-    $obj = undef;
-    $parse = undef;
+    $obj = $parse = $result = undef;
     _pause();
-    @_ = ( PPIx::Regexp::Element->_parent_keys(), 0,
-	'Should be no leftover objects' );
+    $result = PPIx::Regexp::Element->_parent_keys();
+    @_ = ( $result, 0, 'Should be no leftover objects' );
     goto &is;
 }
 
 {
 
-    my %array = map { $_ => 1} qw{ start type children finish };
+    my %array = map { $_ => 1} qw{
+	children delimiters finish schildren start tokens type
+    };
 
     sub navigate {
 	my @args = @_;
@@ -172,7 +192,7 @@ sub finis {		## no critic (RequireArgUnpacking)
 	    and @{ $args[-1] } == 0
 	    and $array{$args[-2]}
 	    and $scalar = 0;
-	@nav = ();
+	my @nav = ();
 	while ( @args ) {
 	    if ( _INSTANCE( $args[0], 'PPIx::Regexp::Element' ) ) {
 		$obj = shift @args;
@@ -196,66 +216,91 @@ sub finis {		## no critic (RequireArgUnpacking)
 	$nav = _safe( @nav );
 	$nav =~ s/ ' ( \w+ ) ' , /$1 =>/smxg;
 	$nav =~ s/ \[ \s+ \] /[]/smxg;
+	$result = $obj;
 	return $obj;
     }
 
 }
 
 sub parse {		## no critic (RequireArgUnpacking)
-    my ( $regexp ) = @_;
+    my ( $opt, $regexp, @args ) = _parse_constructor_args(
+	{ test => 1 }, @_ );
+    $initial_class = 'PPIx::Regexp';
     $kind = 'element';
-    $obj = $parse = PPIx::Regexp->new( $regexp );
+    $result = $obj = $parse = PPIx::Regexp->new( $regexp, @args );
     $nav = '';
+    $opt->{test} or return;
     @_ = ( $parse, 'PPIx::Regexp', $regexp );
     goto &isa_ok;
 }
 
 sub tokenize {		## no critic (RequireArgUnpacking)
-    my ( $regexp, @args ) = @_;
+    my ( $opt, $regexp, @args ) = _parse_constructor_args(
+	{ test => 1, tokens => 1 }, @_ );
+    $initial_class = 'PPIx::Regexp::Tokenizer';
     $kind = 'token';
-    my $obj = PPIx::Regexp::Tokenizer->new( $regexp, @args );
-    if ( $obj ) {
+    $obj = PPIx::Regexp::Tokenizer->new( $regexp, @args );
+    if ( $obj && $opt->{tokens} ) {
 	$parse = [ $obj->tokens() ];
     } else {
 	$parse = [];
     }
+    $result = $parse;
     $nav = '';
+    $opt->{test} or return;
     @_ = ( $obj, 'PPIx::Regexp::Tokenizer', $regexp );
     goto &isa_ok;
 }
 
 sub true {		## no critic (RequireArgUnpacking)
-    my @args = @_;
-    my ( $method, $args ) = splice @args, -2;
+    my ( $method, $args ) = @_;
     ref $args eq 'ARRAY' or $args = [ $args ];
     my $class = ref $obj;
     if ( $obj->can( $method ) ) {
-	@_ = ( $obj->$method( @{ $args || [] } ),
-	    "$class->$method() is true" );
+	$result = $obj->$method( @{ $args } );
+	@_ = ( $result, "$class->$method() is true" );
     } else {
+	$result = undef;
 	@_ = ( undef, "$class->$method() exists" );
     }
     goto &ok;
 }
 
 sub value {		## no critic (RequireArgUnpacking)
-    my ( @args ) = @_;
-    my ( $method, $args, $expect ) = splice @args, -3;
+    my ( $method, $args, $expect ) = @_;
     ref $args eq 'ARRAY' or $args = [ $args ];
-    my $class = ref $obj;
 
-    if ( ! $obj->can( $method ) ) {
+    my $invocant = $obj || $initial_class;
+    if ( ! $invocant->can( $method ) ) {
+	my $class = ref $obj || $obj || $initial_class;
 	@_ = ( undef, "$class->$method() exists" );
 	goto &ok;
     }
 
-    if ( ref $expect eq 'ARRAY' ) {
-	@_ = ( [ $obj->$method( @{ $args || [] } ) ], $expect, $method );
-	goto &is_deeply;
-    }
+    $result = ref $expect eq 'ARRAY' ?
+	[ $invocant->$method( @{ $args } ) ] :
+	$invocant->$method( @{ $args } );
 
-    @_ = ( $obj->$method( @{ $args || [] } ), $expect, $method );
-    goto &is;
+    @_ = ( $result, $expect, $method );
+    if ( ref $result ) {
+	goto &is_deeply;
+    } else {
+	goto &is;
+    }
+}
+
+sub _parse_constructor_args {
+    my ( $opt, @args ) = @_;
+    my @rslt = ( $opt );
+    foreach my $arg ( @args ) {
+	if ( $arg =~ m/ \A - -? (no)? (\w+) \z /smx &&
+	    exists $opt->{$2} ) {
+	    $opt->{$2} = !$1;
+	} else {
+	    push @rslt, $arg;
+	}
+    }
+    return @rslt;
 }
 
 sub _pause {
@@ -265,6 +310,28 @@ sub _pause {
 	sleep 1;				# t/08_regression.t, and
     }						# who am I to argue?
     return;
+}
+
+# quote a string.
+sub _safe {
+    my @args = @_;
+    my @rslt;
+    foreach my $item ( @args ) {
+	if ( _INSTANCE( $item, 'PPIx::Regexp::Element' ) ) {
+	    $item = $item->content();
+	}
+	if ( ! defined $item ) {
+	    push @rslt, 'undef';
+	} elsif ( ref $item eq 'ARRAY' ) {
+	    push @rslt, join( ' ', '[', _safe( @{ $item } ), ']' );
+	} elsif ( looks_like_number( $item ) ) {
+	    push @rslt, $item;
+	} else {
+	    $item =~ s/ ( [\\'] ) /\\$1/smxg;
+	    push @rslt, "'$item'";
+	}
+    }
+    return join( ', ', @rslt );
 }
 
 1;
@@ -355,6 +422,27 @@ whose argument list ends in one of
  start => []
  type => []
 
+=head2 dump_result
+
+ dump_result( tokens => 1, <<'EOD', 'Test tokenization dump' );
+ ... expected dump here ...
+ EOD
+
+This test performs the specified dump on the current object and succeeds
+if the result matches the expectation. The name of the test is the last
+argument, and the expected result is the next-to-last argument. All
+other arguments are passed to
+L<PPIx::Regexp::Dumper|PPIx::Regexp::Dumper>.
+
+Well, almost all other arguments are passed to the dumper. You can
+specify C<--notest> to skip the test. In this case the result of the
+last operation is dumped. L<PPIx::Regexp::Dumper|PPIx::Regexp::Dumper>
+is used if appropriate; otherwise you get a L<YAML|YAML> dump if that is
+available, or a L<Data::Dumper|Data::Dumper> dump if not. If no dumper
+class can be found, a diagnostic is produced. You can also specify
+C<--test>, but this is the default. This option is removed from the
+argument list before the test name (etc) is determined.
+
 =head2 false
 
  false( significant => [] );
@@ -394,6 +482,14 @@ of the parse tree.
 This test parses the given regular expression into a C<PPIx::Regexp>
 object, and succeeds if a C<PPIx::Regexp> object was in fact generated.
 
+If you specify argument C<--notest>, the parse is done but no test is
+performed. You would do this if you expected the parse to fail (e.g. you
+are testing error handling). You can also explicitly specify C<--test>,
+but this is the default.
+
+All other arguments are passed to the L<PPIx::Regexp|PPIx::Regexp>
+constructor.
+
 =head2 plan
 
 This subroutine is exported from R<Test::More|Test::More>.
@@ -405,6 +501,19 @@ This subroutine is exported from R<Test::More|Test::More>.
 This test tokenizes the given regular expression into a
 C<PPIx::Regexp::Tokenizer> object, and succeeds if a
 C<PPIx::Regexp::Tokenizer> object was in fact generated.
+
+If you specify argument C<--notest>, the parse is done but no test is
+performed. You would do this if you expected the parse to fail (e.g. you
+are testing error handling). You can also explicitly specify C<--test>,
+but this is the default.
+
+If you specify argument C<--notokens>, the tokenizer is built, but the
+tokens are not extracted. You would do this when you want a subsequent
+operation to call C<tokens()>. You can also explicitly specify
+C<--tokens>, but this is the default.
+
+All other arguments are passed to the
+L<PPIx::Regexp::Tokenizer|PPIx::Regexp::Tokenizer> constructor.
 
 =head2 true
 
@@ -419,6 +528,10 @@ on the current object, returns a true value.
 
 This test succeeds if the given method, with the given arguments, called
 on the current object, returns the given value.
+
+If the current object is undefined, the given method is called on the
+intended initial class, otherwise there would be no way to test the
+errstr() method.
 
 =head1 SUPPORT
 

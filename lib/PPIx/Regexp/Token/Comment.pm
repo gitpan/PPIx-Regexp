@@ -34,7 +34,7 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Token };
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 # Return true if the token can be quantified, and false otherwise
 sub can_be_quantified { return };
@@ -46,15 +46,6 @@ sub significant {
 sub comment {
     return 1;
 }
-
-# Return true to be included in the token scan. This determination
-# should be good for the life of the tokenizer. It is called as a static
-# method with two arguments: the tokenizer object and the mode name. Use
-# of the latter is pre-deprecated.
-# sub __PPIX_TOKEN__scan_me {
-#     my ( $class, $tokenizer, $mode ) = @_;
-#     return $tokenizer->interpolates();
-# };
 
 # This must be implemented by tokens which do not recognize themselves.
 # The return is a list of list references. Each list reference must

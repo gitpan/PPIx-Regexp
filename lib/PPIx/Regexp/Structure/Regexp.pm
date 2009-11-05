@@ -36,7 +36,7 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Structure::Main };
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 =head2 capture_names
 
@@ -73,12 +73,6 @@ expression. If there are no captures, the return will be 0.
 sub max_capture_number {
     my ( $self ) = @_;
     return $self->{max_capture_number};
-}
-
-# Returns the names of attributes to be populated out of the optional
-# leading hash passed to _new().
-sub __PPIX_ATTRIBUTE__names {
-    return ( qw{ max_capture_number } );
 }
 
 # Called by the lexer once it has done its worst to all the tokens.

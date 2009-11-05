@@ -83,7 +83,7 @@ use Params::Util 0.25 qw{ _INSTANCE };
 use PPIx::Regexp::Lexer ();
 use Scalar::Util qw{ refaddr };
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 =head2 new
 
@@ -216,7 +216,8 @@ any objects specified are removed from the cache.
 
 	if ( @args ) {
 	    foreach my $obj ( @args ) {
-		if ( _INSTANCE( ( my $parent = $obj->parent() ),
+		if ( _INSTANCE( $obj, __PACKAGE__ ) &&
+		    _INSTANCE( ( my $parent = $obj->source() ),
 			'PPI::Element' ) ) {
 		    delete $cache{ refaddr( $parent ) };
 		}
@@ -253,6 +254,49 @@ sub capture_names {
     my ( $self ) = @_;
     my $re = $self->regular_expression() or return;
     return $re->capture_names();
+}
+
+=head2 delimiters
+
+ print join("\t", PPIx::Regexp->new('s/foo/bar/')->delimiters());
+ # prints '//      //'
+
+When called in list context, this method returns either one or two
+strings, depending on whether the parsed expression has a replacement
+string. In the case of non-bracketed substitutions, the start delimiter
+of the replacement string is considered to be the same as its finish
+delimiter, as illustrated by the above example.
+
+When called in scalar context, you get the delimiters of the regular
+expression; that is, element 0 of the array that is returned in list
+context.
+
+Optionally, you can pass an index value and the corresponding delimiters
+will be returned; index 0 represents the regular expression's
+delimiters, and index 1 represents the replacement string's delimiters,
+which may be undef. For example,
+
+ print PPIx::Regexp->new('s{foo}<bar>')-delimiters(1);
+ # prints '[]'
+
+If the object was not initialized with a valid regexp of some sort, the
+results of this method are undefined.
+
+=cut
+
+sub delimiters {
+    my ( $self, $inx ) = @_;
+
+    my @rslt;
+    foreach my $method ( qw{ regular_expression replacement } ) {
+	defined ( my $obj = $self->$method() ) or next;
+	push @rslt, $obj->delimiters();
+    }
+
+    defined $inx and return $rslt[$inx];
+    wantarray and return @rslt;
+    defined wantarray and return $rslt[0];
+    return;
 }
 
 =head2 errstr
