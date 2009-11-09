@@ -15,6 +15,7 @@ my %args = (
 	'Params::Util'	=> 0.250,
 	'Readonly'	=> 0,
 	'Scalar::Util'	=> 0,
+	'Task::Weaken'	=> 0,
     },
     PL_FILES => {},	# Prevent old MakeMaker from running Build.PL
     'dist' => {COMPRESS => 'gzip', SUFFIX => 'gz'},
@@ -22,7 +23,7 @@ my %args = (
     ABSTRACT => 'Parse regular expressions',
 );
 
-$mmv >= 6.31 and $args{LICENSE} => 'perl';
+$mmv >= 6.31 and $args{LICENSE} = 'perl';
 
 $mmv >= 6.4501 and $args{META_MERGE} = {
     build_requires => {
