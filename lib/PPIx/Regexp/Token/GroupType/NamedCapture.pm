@@ -17,7 +17,12 @@ C<PPIx::Regexp::Token::GroupType::NamedCapture> has no descendants.
 
 =head1 DESCRIPTION
 
-This class represents a named capture specification.
+This class represents a named capture specification. Its content will be
+something like one of the following:
+
+ ?<NAME>
+ ?'NAME'
+ ?P<NAME>
 
 =head1 METHODS
 
@@ -38,7 +43,7 @@ use Carp qw{ confess };
 
 use PPIx::Regexp::Constant qw{ $RE_CAPTURE_NAME };
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };

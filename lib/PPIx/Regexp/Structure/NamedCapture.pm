@@ -17,7 +17,12 @@ C<PPIx::Regexp::Structure::NamedCapture> has no descendants.
 
 =head1 DESCRIPTION
 
-This class represents a named capture.
+This class represents a named capture. Its content will be something
+like one of the following:
+
+ (?<NAME> ... )
+ (?'NAME' ... )
+ (?P<NAME> ... )
 
 =head1 METHODS
 
@@ -37,7 +42,7 @@ use Params::Util 0.25 qw{ _INSTANCE };
 
 use base qw{ PPIx::Regexp::Structure::Capture };
 
-our $VERSION = '0.004';
+our $VERSION = '0.005';
 
 =head2 name
 
