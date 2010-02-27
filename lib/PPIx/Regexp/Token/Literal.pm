@@ -36,7 +36,7 @@ use base qw{ PPIx::Regexp::Token };
 
 use PPIx::Regexp::Constant qw{ $COOKIE_CLASS };
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -128,7 +128,7 @@ The following is from perlop:
 		    0 [01234567]* |	# octal
 		    c [][[:alpha:]\@\\^_?] |	# control characters
 		    x (?: \{ [[:xdigit:]]* \} | [[:xdigit:]]{0,2} ) | # hex
-		    N (?: \{ (?: [[:alpha:]] [\w\s:]* |	# must begin w/ alpha
+		    N (?: \{ (?: [[:alpha:]] [\w\s:()-]* | # must begin w/ alpha
 			U [+] [[:xdigit:]]+ ) \} ) |	# unicode
 		    C (?: \d+ | \{ [^\}] \} )		# octets
 		) }smx ) ) {
@@ -314,7 +314,7 @@ Thomas R. Wyant, III F<wyant at cpan dot org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009, Thomas R. Wyant, III
+Copyright (C) 2009-2010, Thomas R. Wyant, III
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text

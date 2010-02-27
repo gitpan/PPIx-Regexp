@@ -38,7 +38,7 @@ use PPIx::Regexp::Token::Unknown		();
 use PPIx::Regexp::Token::Whitespace		();
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.005';
+our $VERSION = '0.006';
 
 {
     # Names of classes containing tokenization machinery. There are no
@@ -362,6 +362,11 @@ sub make_token {
 	and $self->{prior} = $token;
 
     return $token;
+}
+
+sub match {
+    my ( $self ) = @_;
+    return $self->{match};
 }
 
 sub modifier {
@@ -944,6 +949,18 @@ If the given length would include characters past the end of the string
 being tokenized, the length is reduced appropriately. If this means a
 token with no characters, nothing is returned.
 
+=head2 match
+
+ if ( $tokenizer->find_regexp( qr{ \A \w+ }smx ) ) {
+     print $tokenizer->match(), "\n";
+ }
+
+This method returns the string matched by the previous call to
+L</find_regexp>.
+
+The match is set to C<undef> by L</make_token>, as well as by another
+call to L</find_regexp>.
+
 =head2 modifier_duplicate
 
  $tokenizer->modifier_duplicate();
@@ -1018,7 +1035,7 @@ Thomas R. Wyant, III F<wyant at cpan dot org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009, Thomas R. Wyant, III
+Copyright (C) 2009-2010, Thomas R. Wyant, III
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text
