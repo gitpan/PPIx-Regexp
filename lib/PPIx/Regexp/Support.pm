@@ -37,7 +37,7 @@ use warnings;
 
 use Params::Util 0.25 qw{ _INSTANCE };
 
-our $VERSION = '0.006';
+our $VERSION = '0.006_01';
 
 =head2 close_bracket
 
@@ -117,6 +117,18 @@ loaded.
 	);
     }
 
+}
+
+# This method is to be used only by the PPIx::Regexp package. It returns
+# the first of its arguments which is defined. It will go away when
+# (or if!) these modules get 'use 5.010;' at the top.
+
+sub _defined_or {
+    my ( $self, @args ) = @_;
+    foreach my $arg ( @args ) {
+	defined $arg and return $arg;
+    }
+    return;
 }
 
 1;
