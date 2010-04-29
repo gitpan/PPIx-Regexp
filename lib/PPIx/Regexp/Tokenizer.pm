@@ -37,7 +37,7 @@ use PPIx::Regexp::Token::Unknown		();
 use PPIx::Regexp::Token::Whitespace		();
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.006_01';
+our $VERSION = '0.007';
 
 {
     # Names of classes containing tokenization machinery. There are no
@@ -181,6 +181,9 @@ our $VERSION = '0.006_01';
 
 	$self->{cursor_limit} = length $self->{content};
 
+	$self->{trace}
+	    and warn "\ntokenizing '$self->{content}'\n";
+
 	return $self;
     }
 
@@ -297,8 +300,9 @@ sub find_regexp {
     # never able to reproduce outside Perl::Critic. But returning $+[0]
     # directly, the value could transmogrify between here and the
     # calling module.
-    my @data = ( $-[0], $+[0] );
-    return wantarray ? @data : $data[1];
+##  my @data = ( $-[0], $+[0] );
+##  return wantarray ? @data : $data[1];
+    return wantarray ? ( $-[0] + 0, $+[0] + 0 ) : $+[0] + 0;
 }
 
 sub get_token {
