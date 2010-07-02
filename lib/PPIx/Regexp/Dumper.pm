@@ -44,7 +44,7 @@ use Scalar::Util qw{ blessed looks_like_number };
 use PPIx::Regexp;
 use PPIx::Regexp::Tokenizer;
 
-our $VERSION = '0.007_01';
+our $VERSION = '0.008';
 
 =head2 new
 
@@ -443,6 +443,10 @@ sub PPIx::Regexp::Node::__PPIX_DUMPER__test {
 		push @rslt, defined $val ?
 		    "$method=$val" :
 		    "$method undef";
+	    }
+	    foreach my $method ( qw{ can_be_quantified is_quantifier } ) {
+		$self->can( $method ) or next;
+		$self->$method() and push @rslt, $method;
 	    }
 	}
 	@rslt = ( join( "\t", @rslt ) );
