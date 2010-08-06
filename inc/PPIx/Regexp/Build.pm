@@ -5,7 +5,7 @@ use warnings;
 
 use base qw{ Module::Build };
 
-our $VERSION = '0.009';
+our $VERSION = '0.010';
 
 use Carp;
 
@@ -14,7 +14,7 @@ sub ACTION_authortest {
     my ( $self, @args ) = @_;
 
     $self->depends_on( 'build' );
-    $self->test_files( qw{ t xt } );
+    $self->test_files( qw{ t xt/author } );
     $self->depends_on( 'test' );
 
     return;

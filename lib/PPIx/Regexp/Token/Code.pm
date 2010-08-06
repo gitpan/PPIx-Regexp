@@ -46,7 +46,7 @@ use base qw{ PPIx::Regexp::Token };
 use Params::Util 0.25 qw{ _INSTANCE };
 use PPI::Document;
 
-our $VERSION = '0.009';
+our $VERSION = '0.010';
 
 sub _new {
     my ( $class, $content ) = @_;
@@ -87,7 +87,7 @@ sub ppi {
     if ( exists $self->{ppi} ) {
 	return $self->{ppi};
     } elsif ( exists $self->{content} ) {
-	return ( $self->{ppi} = PPI::Document->new( \{$self->{content}}) );
+	return ( $self->{ppi} = PPI::Document->new( \($self->{content})) );
     } else {
 	return;
     }
