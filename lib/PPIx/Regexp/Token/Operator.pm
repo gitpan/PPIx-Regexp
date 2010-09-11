@@ -35,10 +35,10 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Token };
 
-use Params::Util 0.25 qw{ _INSTANCE };
-use PPIx::Regexp::Constant qw{ $TOKEN_LITERAL };
+use PPIx::Regexp::Constant qw{ TOKEN_LITERAL };
+use PPIx::Regexp::Util qw{ __instance };
 
-our $VERSION = '0.010';
+our $VERSION = '0.010_01';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -53,8 +53,8 @@ my %operator = map { $_ => 1 } qw{ | - };
 
 sub _treat_as_literal {
     my ( $token ) = @_;
-    return _INSTANCE( $token, 'PPIx::Regexp::Token::Literal' ) ||
-	_INSTANCE( $token, 'PPIx::Regexp::Token::Interpolation' );
+    return __instance( $token, 'PPIx::Regexp::Token::Literal' ) ||
+	__instance( $token, 'PPIx::Regexp::Token::Interpolation' );
 }
 
 sub __PPIX_TOKENIZER__regexp {
@@ -67,13 +67,13 @@ sub __PPIX_TOKENIZER__regexp {
     if ( $character eq '-' ) {
 
 	_treat_as_literal( $tokenizer->prior() )
-	    or return $tokenizer->make_token( 1, $TOKEN_LITERAL );
+	    or return $tokenizer->make_token( 1, TOKEN_LITERAL );
 	
 	my @tokens = ( $tokenizer->make_token( 1 ) );
 	push @tokens, $tokenizer->get_token();
 	
 	_treat_as_literal( $tokens[1] )
-	    or bless $tokens[0], $TOKEN_LITERAL;
+	    or bless $tokens[0], TOKEN_LITERAL;
 	
 	return ( @tokens );
     }

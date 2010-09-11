@@ -5,20 +5,21 @@ use warnings;
 
 use base qw{ Exporter };
 
-use Params::Util 0.25 qw{ _INSTANCE };
 use PPIx::Regexp;
 use PPIx::Regexp::Dumper;
 use PPIx::Regexp::Element;
 use PPIx::Regexp::Tokenizer;
+use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number refaddr };
 use Test::More 0.40;
 
-our $VERSION = '0.010';
+our $VERSION = '0.010_01';
 
 our @EXPORT_OK = qw{
     cache_count
     choose
     class
+    cmp_ok
     content
     count
     different
@@ -29,6 +30,7 @@ our @EXPORT_OK = qw{
     navigate
     parse
     plan
+    result
     skip
     tokenize
     true
@@ -144,8 +146,8 @@ sub dump_result {
 	my $got = PPIx::Regexp::Dumper->new( $obj, @args )->string();
 	@_ = ( $got, $expect, $name );
 	goto &is;
-    } elsif ( _INSTANCE( $result, 'PPIx::Regexp::Tokenizer' ) ||
-	_INSTANCE( $result, 'PPIx::Regexp::Element' ) ) {
+    } elsif ( __instance( $result, 'PPIx::Regexp::Tokenizer' ) ||
+	__instance( $result, 'PPIx::Regexp::Element' ) ) {
 	diag( PPIx::Regexp::Dumper->new( $obj, @args )->string() );
     } elsif ( eval { require YAML; 1; } ) {
 	diag( "Result dump:\n", YAML::Dump( $result ) );
@@ -215,7 +217,7 @@ sub finis {		## no critic (RequireArgUnpacking)
 	    and $scalar = 0;
 	my @nav = ();
 	while ( @args ) {
-	    if ( _INSTANCE( $args[0], 'PPIx::Regexp::Element' ) ) {
+	    if ( __instance( $args[0], 'PPIx::Regexp::Element' ) ) {
 		$obj = shift @args;
 	    } elsif ( ref $obj eq 'ARRAY' ) {
 		my $inx = shift @args;
@@ -253,6 +255,10 @@ sub parse {		## no critic (RequireArgUnpacking)
     $opt->{test} or return;
     @_ = ( $parse, 'PPIx::Regexp', $regexp );
     goto &isa_ok;
+}
+
+sub result {
+    return $result;
 }
 
 sub tokenize {		## no critic (RequireArgUnpacking)
@@ -338,7 +344,7 @@ sub _safe {
     my @args = @_;
     my @rslt;
     foreach my $item ( @args ) {
-	if ( _INSTANCE( $item, 'PPIx::Regexp::Element' ) ) {
+	if ( __instance( $item, 'PPIx::Regexp::Element' ) ) {
 	    $item = $item->content();
 	}
 	if ( ! defined $item ) {
@@ -426,6 +432,10 @@ succeeds if it is. If the current object is C<undef>, the test fails.
 This test checks to see if the C<content> method of the current object
 is equal to the given string. If the current object is C<undef>, the
 test fails.
+
+=head2 cmp_ok
+
+This subroutine is exported from L<Test::More|Test::More>.
 
 =head2 count
 
@@ -522,7 +532,16 @@ constructor.
 
 =head2 plan
 
-This subroutine is exported from R<Test::More|Test::More>.
+This subroutine is exported from L<Test::More|Test::More>.
+
+=head2 result
+
+ my $val = result();
+
+This subroutine returns the result of the most recent operation that
+actually produces one. It should be called immediately after the
+operation, mostly because I have not documented all the subroutines that
+produce a result.
 
 =head2 tokenize
 
@@ -562,6 +581,9 @@ on the current object, returns the given value.
 If the current object is undefined, the given method is called on the
 intended initial class, otherwise there would be no way to test the
 errstr() method.
+
+The result of the method call is accessable via the L<result()|/result>
+subroutine.
 
 =head1 SUPPORT
 

@@ -5,7 +5,7 @@ PPIx::Regexp::Token::CharClass::POSIX - Represent a POSIX character class
 =head1 SYNOPSIS
 
  use PPIx::Regexp::Dumper;
- PPIx::Regexp::Dumper->new( 'qr{[[:alpha:]]}smx' )
+ PPIx::Regexp::Dumper->new( 'qr{ [[:alpha:]] }smx' )
      ->print();
 
 =head1 INHERITANCE
@@ -19,6 +19,12 @@ C<PPIx::Regexp::Token::CharClass::POSIX> has no descendants.
 
 This class represents a POSIX character class. It will only be
 recognized within a character class.
+
+Note that collating symbols (e.g. C<[.ch.]>) and equivalence classes
+(e.g. C<[=a=]>) are valid in the POSIX standard, but are not valid in
+Perl regular expressions. These end up being represented by
+L<PPIx::Regexp::Token::CharClass::Posix::Unknown|PPIx::Regexp::Token::CharClass::Posix::Unknown>,
+and are considered a parse failure.
 
 =head1 METHODS
 
@@ -34,25 +40,63 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Token::CharClass };
 
-use PPIx::Regexp::Constant qw{ $COOKIE_CLASS };
+use PPIx::Regexp::Constant qw{ COOKIE_CLASS MINIMUM_PERL };
 
-our $VERSION = '0.010';
+our $VERSION = '0.010_01';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
 
-sub __PPIX_TOKENIZER__regexp {
-    my ( $class, $tokenizer, $character ) = @_;
+sub perl_version_introduced {
+    my ( $self ) = @_;
+    return $self->{perl_version_introduced};
+}
 
-    $tokenizer->cookie( $COOKIE_CLASS ) or return;
+sub perl_version_removed {
+    my ( $self ) = @_;
+    return $self->{perl_version_removed};
+}
 
-    if ( my $accept = $tokenizer->find_regexp(
-	    qr{ \A \[ : \^? [^:]* : \] }smx ) ) {
-	return $accept;
+{
+
+    my %info = (
+	':' => {
+	    introduced => MINIMUM_PERL,
+	},
+    );
+
+    sub __PPIX_TOKENIZER__regexp {
+	my ( $class, $tokenizer, $character ) = @_;
+
+	$tokenizer->cookie( COOKIE_CLASS ) or return;
+
+	if ( my $accept = $tokenizer->find_regexp(
+		qr{ \A [[] ( [.=:] ) \^? .*? \1 []] }smx ) ) {
+	    my ( $punc ) = $tokenizer->capture();
+	    if ( my $args = $info{$punc} ) {
+		my $class = $args->{class} || __PACKAGE__;
+		return $tokenizer->make_token( $accept, $class, $args );
+	    } else {
+		return $tokenizer->make_token( $accept,
+		    __PACKAGE__ . '::Unknown', {
+			introduced => MINIMUM_PERL,
+		    },
+		);
+	    }
+	}
+
+	return;
+
     }
 
-    return;
+}
 
+sub __PPIX_TOKEN__post_make {
+    my ( $self, $tokenizer, $arg ) = @_;
+    defined $arg or $arg = {};
+    $self->{perl_version_introduced} = $arg->{introduced};
+    $self->{perl_version_removed} = $arg->{removed};
+    return;
 }
 
 1;

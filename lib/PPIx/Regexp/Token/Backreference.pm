@@ -35,9 +35,9 @@ use warnings;
 use base qw{ PPIx::Regexp::Token::Reference };
 
 use Carp qw{ confess };
-use PPIx::Regexp::Constant qw{ $MINIMUM_PERL $RE_CAPTURE_NAME };
+use PPIx::Regexp::Constant qw{ MINIMUM_PERL RE_CAPTURE_NAME };
 
-our $VERSION = '0.010';
+our $VERSION = '0.010_01';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -53,13 +53,13 @@ our $VERSION = '0.010';
     sub perl_version_introduced {
 	my ( $self ) = @_;
 	return $perl_version_introduced{substr( $self->content(), 1, 1 )} ||
-	    $MINIMUM_PERL;
+	    MINIMUM_PERL;
     }
 
 }
 
 my @external = (	# Recognition used externally
-    [ qr{ \A \( \? P = ( $RE_CAPTURE_NAME ) \) }smx,
+    [ qr{ \A \( \? P = ( @{[ RE_CAPTURE_NAME ]} ) \) }smxo,
 	{ is_named => 1 },
 	],
 );
@@ -73,11 +73,11 @@ my @recognize = (	# recognition used internally
 	}smx, { is_named => 0 }, ],
     [
 	qr{ \A \\ (?:		# named
-	    g \{ ( $RE_CAPTURE_NAME ) \} |
-	    k (?: \< ( $RE_CAPTURE_NAME ) \> |	# named with angles
-		' ( $RE_CAPTURE_NAME ) ' )	#   or quotes
+	    g \{ ( @{[ RE_CAPTURE_NAME ]} ) \} |
+	    k (?: \< ( @{[ RE_CAPTURE_NAME ]} ) \> |	# named with angles
+		' ( @{[ RE_CAPTURE_NAME ]} ) ' )	#   or quotes
 	)
-	}smx, { is_named => 1 }, ],
+	}smxo, { is_named => 1 }, ],
 );
 
 # This must be implemented by tokens which do not recognize themselves.

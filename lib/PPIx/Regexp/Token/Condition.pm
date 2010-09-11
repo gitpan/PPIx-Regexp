@@ -35,18 +35,18 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Token::Reference };
 
-use PPIx::Regexp::Constant qw{ $RE_CAPTURE_NAME };
+use PPIx::Regexp::Constant qw{ RE_CAPTURE_NAME };
 
-our $VERSION = '0.010';
+our $VERSION = '0.010_01';
 
 my @recognize = (
     [ qr{ \A \( (?: ( \d+ ) | R (\d+) ) \) }smx,
 	{ is_named => 0 } ],
     [ qr{ \A \( R \) }smx,
-    { is_named => 0, capture => '0' } ],
-    [ qr{ \A \( (?: < ( $RE_CAPTURE_NAME ) > |
-	    ' ( $RE_CAPTURE_NAME ) ' |
-	    R & ( $RE_CAPTURE_NAME ) ) \) }smx,
+	{ is_named => 0, capture => '0' } ],
+    [ qr{ \A \( (?: < ( @{[ RE_CAPTURE_NAME ]} ) > |
+	    ' ( @{[ RE_CAPTURE_NAME ]} ) ' |
+	    R & ( @{[ RE_CAPTURE_NAME ]} ) ) \) }smxo,
 	{ is_named => 1} ],
     [ qr{ \A \( DEFINE \) }smx,
 	{ is_named => 0, capture => '0' } ],

@@ -38,11 +38,10 @@ use strict;
 use warnings;
 
 use Carp;
-use Params::Util 0.25 qw{ _INSTANCE };
 
 use base qw{ PPIx::Regexp::Structure::Capture };
 
-our $VERSION = '0.010';
+our $VERSION = '0.010_01';
 
 =head2 name
 
