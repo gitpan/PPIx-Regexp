@@ -37,7 +37,7 @@ use base qw{ PPIx::Regexp::Token::Reference };
 use Carp qw{ confess };
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL RE_CAPTURE_NAME };
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -45,9 +45,9 @@ our $VERSION = '0.011';
 {
 
     my %perl_version_introduced = (
-	g => '5.010',	# \g1 \g-1 \g{1} \g{-1}
-	k => '5.010',	# \k<name> \k'name'
-	'?' => '5.010',	# (?P=name)	(PCRE/Python)
+	g => '5.009005',	# \g1 \g-1 \g{1} \g{-1}
+	k => '5.009005',	# \k<name> \k'name'
+	'?' => '5.009005',	# (?P=name)	(PCRE/Python)
     );
 
     sub perl_version_introduced {

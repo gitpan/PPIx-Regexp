@@ -20,7 +20,7 @@ C<PPIx::Regexp::Token::Assertion> has no descendants.
 This class represents one of the simple assertions; that is, those that
 are not defined via parentheses. This includes the zero-width assertions
 C<^>, C<$>, C<\b>, C<\B>, C<\A>, C<\Z>, C<\z> and C<\G>, as well as the
-positive look-behind assertion C<\K> added in Perl 5.010.
+positive look-behind assertion C<\K> added in Perl 5.009005.
 
 =head1 METHODS
 
@@ -38,7 +38,7 @@ use base qw{ PPIx::Regexp::Token };
 
 use PPIx::Regexp::Constant qw{ COOKIE_CLASS MINIMUM_PERL TOKEN_LITERAL };
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -46,7 +46,7 @@ our $VERSION = '0.011';
 {
 
     my %perl_version_introduced = (
-	'\\K' => '5.010',
+	'\\K' => '5.009005',
     );
 
     sub perl_version_introduced {

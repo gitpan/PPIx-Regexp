@@ -39,7 +39,7 @@ use base qw{ PPIx::Regexp::Token };
 
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 sub _new {
     my ( $class, @args ) = @_;
@@ -115,7 +115,9 @@ sub negates {
 
 sub perl_version_introduced {
     my ( $self ) = @_;
-    return $self->asserts( 'p' ) ? '5.010' : MINIMUM_PERL;
+    $self->asserts( 'r' ) and return '5.013002';
+    $self->asserts( 'p' ) and return '5.009005';
+    return MINIMUM_PERL;
 }
 
 # Return true if the token can be quantified, and false otherwise

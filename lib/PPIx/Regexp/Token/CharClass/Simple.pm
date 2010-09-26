@@ -39,12 +39,16 @@ use PPIx::Regexp::Constant qw{
     COOKIE_CLASS MINIMUM_PERL TOKEN_LITERAL TOKEN_UNKNOWN
 };
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 {
 
     my %introduced = (
-	'\N'	=> 5.011,
+	'\h'	=> 5.009005,	# Before this, parsed as 'h'
+	'\v'	=> 5.009005,	# Before this, parsed as 'v'
+	'\H'	=> 5.009005,	# Before this, parsed as 'H'
+	'\N'	=> 5.011,	# Before this, an error.
+	'\V'	=> 5.009005,	# Before this, parsed as 'V'
     );
 
     sub perl_version_introduced {

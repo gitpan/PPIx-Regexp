@@ -43,7 +43,7 @@ use Carp qw{ confess };
 
 use PPIx::Regexp::Constant qw{ RE_CAPTURE_NAME };
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -60,7 +60,7 @@ sub name {
 }
 
 sub perl_version_introduced {
-    return '5.010';
+    return '5.009005';
 }
 
 sub __PPIX_TOKEN__post_make {

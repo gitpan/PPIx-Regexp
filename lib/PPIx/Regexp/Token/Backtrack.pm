@@ -33,13 +33,13 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Token };
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 # Return true if the token can be quantified, and false otherwise
 sub can_be_quantified { return };
 
 sub perl_version_introduced {
-    return '5.010';
+    return '5.009005';
 }
 
 # This must be implemented by tokens which do not recognize themselves.

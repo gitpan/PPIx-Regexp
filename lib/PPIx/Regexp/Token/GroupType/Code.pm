@@ -41,7 +41,7 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Token::GroupType };
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -52,7 +52,7 @@ our $VERSION = '0.011';
 	exists $self->{perl_version_removed}
 	    and return $self->{perl_version_removed};
 	return ( $self->{perl_version_removed} =
-	    $self->content() =~ m/ \A \\? \? p \z /smx ? '5.010' : undef
+	    $self->content() =~ m/ \A \\? \? p \z /smx ? '5.009005' : undef
 	);
     }
 }
