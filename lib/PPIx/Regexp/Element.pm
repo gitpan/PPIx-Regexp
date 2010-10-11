@@ -41,7 +41,7 @@ use Scalar::Util qw{ refaddr weaken };
 
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 
-our $VERSION = '0.012';
+our $VERSION = '0.013';
 
 =head2 ancestor_of
 
@@ -164,8 +164,18 @@ sub parent {
 =head2 perl_version_introduced
 
 This method returns the version of Perl in which the element was
-introduced. But in practice it will never return a number less than
-5.006, since that is the minimum version supported by this package.
+introduced. This will be at least 5.000. Before 5.006 I am relying on
+the F<perldelta>, F<perlre>, and F<perlop> documentation, since I have
+been unable to build earlier Perls. Since I have found no documentation
+before 5.003, I assume that anything found in 5.003 is also in 5.000.
+
+Since this all depends on my ability to read and understand masses of
+documentation, the results of this method should be viewed with caution,
+if not downright skepticism.
+
+There are also cases which are ambiguous in various ways. For those see
+L<PPIx::Regexp/RESTRICTIONS>, and especially
+L<PPIx::Regexp/Changes in Syntax>.
 
 =cut
 
@@ -177,6 +187,11 @@ sub perl_version_introduced {
 
 This method returns the version of Perl in which the element was
 removed. If the element is still valid the return is C<undef>.
+
+All the I<caveats> to
+L<perl_version_introduced()|/perl_version_introduced> apply here also,
+though perhaps less severely since although many features have been
+introduced since 5.0, few have been removed.
 
 =cut
 

@@ -44,7 +44,9 @@ use PPIx::Regexp::Constant qw{
     TOKEN_UNKNOWN
 };
 
-our $VERSION = '0.012';
+our $VERSION = '0.013';
+
+=begin comment
 
 sub perl_version_introduced {
     my ( $self ) = @_;
@@ -55,6 +57,10 @@ sub perl_version_introduced {
     $content =~ m/ \( \d+ \) /smx and return MINIMUM_PERL;
     return '5.009005';
 }
+
+=end comment
+
+=cut
 
 sub __PPIX_LEXER__finalize {
     my ( $self ) = @_;

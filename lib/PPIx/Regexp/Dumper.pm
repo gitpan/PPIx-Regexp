@@ -44,7 +44,7 @@ use PPIx::Regexp;
 use PPIx::Regexp::Tokenizer;
 use PPIx::Regexp::Util qw{ __instance };
 
-our $VERSION = '0.012';
+our $VERSION = '0.013';
 
 =head2 new
 
@@ -356,7 +356,7 @@ sub PPIx::Regexp::__PPIX_DUMPER__test {
     not $dumper->{significant} or $self->significant() or return;
 
     my $parse = 'parse   ( ' . $dumper->_safe( $self ) . ' );';
-    my $fail =  'value   ( failures => [], ' . $self->failures() . ');';
+    my $fail =  'value   ( failures => [], ' . $self->failures() . ' );';
 
     # Note that we can not use SUPER in the following because SUPER goes
     # by the current package, not by the class of the object.
@@ -523,9 +523,11 @@ sub PPIx::Regexp::Token::__PPIX_DUMPER__dump {
 	push @rslt, sprintf '0x%02x', $ord;
     }
     if ( $dumper->{verbose} ) {
-	if ( $self->isa( 'PPIx::Regexp::Token::Reference' )
-	    && defined( my $abs = $self->absolute() ) ) {
-	    push @rslt, "absolute=$abs";
+	if ( $self->isa( 'PPIx::Regexp::Token::Reference' ) ) {
+	    foreach my $method ( qw{ absolute name number } ) {
+		defined( my $val = $self->$method() ) or next;
+		push @rslt, "$method=$val";
+	    }
 	}
 	foreach my $method (
 	    qw{significant can_be_quantified is_quantifier } ) {

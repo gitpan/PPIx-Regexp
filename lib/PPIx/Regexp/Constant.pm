@@ -3,7 +3,7 @@ package PPIx::Regexp::Constant;
 use strict;
 use warnings;
 
-our $VERSION = '0.012';
+our $VERSION = '0.013';
 
 use base qw{ Exporter };
 
@@ -22,7 +22,7 @@ use constant COOKIE_CLASS	=> ']';
 use constant COOKIE_QUANT	=> '}';
 use constant COOKIE_QUOTE	=> '\\E';
 
-use constant MINIMUM_PERL	=> '5.006';
+use constant MINIMUM_PERL	=> '5.000';
 
 # The perlre for Perl 5.010 says:
 #

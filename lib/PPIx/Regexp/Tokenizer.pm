@@ -38,10 +38,10 @@ use PPIx::Regexp::Token::Whitespace		();
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.012';
+our $VERSION = '0.013';
 
 {
-    # Names of classes containing tokenization machinery. There are no
+    # Names of classes containing tokenization machinery. There are few
     # known ordering requirements, since each class recognizes its own,
     # and I have tried to prevent overlap. Absent such constraints, the
     # order is in percieved frequency of acceptance, to keep the search
@@ -242,9 +242,9 @@ sub failures {
 }
 
 sub find_matching_delimiter {
-    my ( $self, $start ) = @_;
+    my ( $self ) = @_;
     $self->{cursor_curr} ||= 0;
-    defined $start or $start = substr
+    my $start = substr
 	$self->{content},
 	$self->{cursor_curr},
 	1;
@@ -352,9 +352,9 @@ sub make_token {
     "cursor_limit = $self->{cursor_limit}\n";
     my $token = $class->_new( $content ) or return;
     $token->significant() and $self->{expect} = undef;
-    $class eq TOKEN_UNKNOWN and $self->{failures}++;
-
     $token->__PPIX_TOKEN__post_make( $self, $arg );
+
+    $token->isa( TOKEN_UNKNOWN ) and $self->{failures}++;
 
     $self->{cursor_curr} += $length;
     $self->{find} = undef;
@@ -520,7 +520,7 @@ sub __PPIX_TOKENIZER__init {
     my ( $class, $tokenizer, $character ) = @_;
 
     $tokenizer->{mode} = 'kaput';
-    $tokenizer->{content} =~ m/ ( qr | m | s )? ( \s* ) ( [^\w\s] ) /smx
+    $tokenizer->{content} =~ m/ \A ( qr | m | s )? ( \s* ) ( [^\w\s] ) /smx
 	or return $tokenizer->make_token(
 	    length( $tokenizer->{content} ), TOKEN_UNKNOWN );
     my ( $type, $white, $delim ) = ( $1, $2, $3 );
@@ -922,6 +922,16 @@ This method is used by tokenizers to find the delimiter matching the
 character at the current position in the content string. If the
 delimiter is an opening bracket of some sort, bracket nesting will be
 taken into account.
+
+When searching for the matching delimiter, the back slash character is
+considered to escape the following character, so back-slashed delimiters
+will be ignored. No other quoting mechanisms are recognized, though, so
+delimiters inside quotes still count. This is actually the way Perl
+works, as
+
+ $ perl -e 'qr<(?{ print "}" })>'
+
+demonstrates.
 
 This method returns the offset from the current position in the content
 string to the matching delimiter (which will always be positive), or

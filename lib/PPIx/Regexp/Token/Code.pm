@@ -46,7 +46,7 @@ use base qw{ PPIx::Regexp::Token };
 use PPI::Document;
 use PPIx::Regexp::Util qw{ __instance };
 
-our $VERSION = '0.012';
+our $VERSION = '0.013';
 
 sub _new {
     my ( $class, $content ) = @_;
@@ -73,6 +73,11 @@ sub content {
     } else {
 	return;
     }
+}
+
+sub perl_version_introduced {
+#   my ( $self ) = @_;
+    return '5.005';	# When (?{...}) introduced.
 }
 
 =head2 ppi
@@ -102,18 +107,10 @@ sub __PPIX_TOKENIZER__regexp {
 
     $character eq '{' or return;
 
-    my $doc = $tokenizer->ppi_document()
+    my $offset = $tokenizer->find_matching_delimiter()
 	or return;
 
-    my $block = ( $doc->find_first( 'PPI::Structure::Block' ) ||
-	$doc->find_first( 'PPI::Structure::Constructor' ) )
-	or return;
-
-    $block->isa( 'PPI::Structure::Constructor' )
-	and $block->content() !~ m/ \A \{ /smx
-	and return;
-
-    return length ( $block->content() );
+    return $offset + 1;	# to include the closing delimiter.
 }
 
 1;

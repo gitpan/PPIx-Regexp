@@ -39,7 +39,7 @@ use base qw{ PPIx::Regexp::Token };
 
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 
-our $VERSION = '0.012';
+our $VERSION = '0.013';
 
 sub _new {
     my ( $class, @args ) = @_;
@@ -117,6 +117,9 @@ sub perl_version_introduced {
     my ( $self ) = @_;
     $self->asserts( 'r' ) and return '5.013002';
     $self->asserts( 'p' ) and return '5.009005';
+    $self->content() =~ m/ \A [(] [?] .* - /smx
+			and return '5.005';
+    $self->asserts( 'c' ) and return '5.004';
     return MINIMUM_PERL;
 }
 
