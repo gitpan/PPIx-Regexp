@@ -38,7 +38,7 @@ use base qw{ PPIx::Regexp::Token::Modifier PPIx::Regexp::Token::GroupType };
 
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 
-our $VERSION = '0.014';
+our $VERSION = '0.015';
 
 {
 
@@ -51,6 +51,8 @@ our $VERSION = '0.014';
 	my $content = $self->content();
 	exists $perl_version_introduced{$content}
 	    and return $perl_version_introduced{$content};
+	my $ver = $self->SUPER::perl_version_introduced();
+	$ver > 5.005 and return $ver;
 	return '5.005';
     }
 
@@ -64,10 +66,13 @@ sub __PPIX_TOKENIZER__regexp {
 
     # Note that the optional escapes are because any of the
     # non-open-bracket punctuation characters might be our delimiter.
-    if ( my $accept = $tokenizer->find_regexp(
-	    qr{ \A \\? \? [[:lower:]]* \\? -? [[:lower:]]* \\? : }smx ) ) {
-	return $accept;
-    }
+    my $accept;
+    $accept = $tokenizer->find_regexp(
+	qr{ \A \\? [?] [[:lower:]]* \\? -? [[:lower:]]* \\? : }smx )
+	and return $accept;
+    $accept = $tokenizer->find_regexp(
+	qr{ \A \\? [?] \^ [[:lower:]]* \\? : }smx )
+	and return $accept;
 
     return;
 }

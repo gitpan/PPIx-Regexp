@@ -3,7 +3,7 @@ package PPIx::Regexp::Constant;
 use strict;
 use warnings;
 
-our $VERSION = '0.014';
+our $VERSION = '0.015';
 
 use base qw{ Exporter };
 
@@ -12,6 +12,7 @@ our @EXPORT_OK = qw{
     COOKIE_QUANT
     COOKIE_QUOTE
     MINIMUM_PERL
+    MODIFIER_GROUP_MATCH_SEMANTICS
     RE_CAPTURE_NAME
     STRUCTURE_UNKNOWN
     TOKEN_LITERAL
@@ -23,6 +24,8 @@ use constant COOKIE_QUANT	=> '}';
 use constant COOKIE_QUOTE	=> '\\E';
 
 use constant MINIMUM_PERL	=> '5.000';
+
+use constant MODIFIER_GROUP_MATCH_SEMANTICS => 'match_semantics';
 
 # The perlre for Perl 5.010 says:
 #
@@ -104,9 +107,16 @@ The minimum version of Perl understood by this parser, as a float. It is
 currently set to 5.006, since that is the minimum version of Perl
 accessible to the author.
 
-=head2 $RE_CAPTURE_NAME
+=head2 MODIFIER_GROUP_MATCH_SEMANTICS
 
-A regular expression that matches the name of a named capture buffer.
+The name of the
+L<PPIx::Regexp::Token::Modifier|PPIx::Regexp::Token::Modifier> group
+used to control match semantics.
+
+=head2 RE_CAPTURE_NAME
+
+A string representation of a regular expression that matches the name of
+a named capture buffer.
 
 =head2 STRUCTURE_UNKNOWN
 
