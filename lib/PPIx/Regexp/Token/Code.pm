@@ -46,7 +46,7 @@ use base qw{ PPIx::Regexp::Token };
 use PPI::Document;
 use PPIx::Regexp::Util qw{ __instance };
 
-our $VERSION = '0.015';
+our $VERSION = '0.016';
 
 sub _new {
     my ( $class, $content ) = @_;
@@ -76,8 +76,8 @@ sub content {
 }
 
 sub perl_version_introduced {
-#   my ( $self ) = @_;
-    return '5.005';	# When (?{...}) introduced.
+    my ( $self ) = @_;
+    return $self->{perl_version_introduced};
 }
 
 =head2 ppi
@@ -101,6 +101,32 @@ sub ppi {
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
+
+{
+
+    my %default = (
+	perl_version_introduced	=> '5.005',	# When (?{...}) introduced.
+    );
+
+    sub __PPIX_TOKEN__post_make {
+	my ( $self, $tokenizer, $arg ) = @_;
+
+	if ( 'HASH' eq ref $arg ) {
+	    foreach my $key ( qw{ perl_version_introduced } ) {
+		exists $arg->{$key}
+		    and $self->{$key} = $arg->{$key};
+	    }
+	}
+
+	foreach my $key ( keys %default ) {
+	    exists $self->{$key}
+		or $self->{$key} = $default{$key};
+	}
+
+	return;
+    }
+
+}
 
 sub __PPIX_TOKENIZER__regexp {
     my ( $class, $tokenizer, $character ) = @_;
@@ -128,7 +154,7 @@ Thomas R. Wyant, III F<wyant at cpan dot org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2010, Thomas R. Wyant, III
+Copyright (C) 2009-2011 by Thomas R. Wyant, III
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text

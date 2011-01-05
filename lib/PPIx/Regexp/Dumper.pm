@@ -44,7 +44,7 @@ use PPIx::Regexp;
 use PPIx::Regexp::Tokenizer;
 use PPIx::Regexp::Util qw{ __instance };
 
-our $VERSION = '0.015';
+our $VERSION = '0.016';
 
 =head2 new
 
@@ -404,7 +404,7 @@ sub PPIx::Regexp::Node::__PPIX_DUMPER__test {
 	    perl_version_introduced
 	    perl_version_removed
 	} ) {
-	    push @rslt, "value   ( $method => " .
+	    push @rslt, "value   ( $method => [], " .
 		$dumper->_safe_version( $self->$method() ) . ' );';
 	}
     }
@@ -583,7 +583,7 @@ Thomas R. Wyant, III F<wyant at cpan dot org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2010, Thomas R. Wyant, III
+Copyright (C) 2009-2011 by Thomas R. Wyant, III
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text
