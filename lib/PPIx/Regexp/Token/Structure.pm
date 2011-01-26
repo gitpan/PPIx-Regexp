@@ -52,7 +52,7 @@ use PPIx::Regexp::Token::Backreference	();
 use PPIx::Regexp::Token::Backtrack	();
 use PPIx::Regexp::Token::Recursion	();
 
-our $VERSION = '0.016';
+our $VERSION = '0.017';
 
 # Return true if the token can be quantified, and false otherwise
 
@@ -122,7 +122,6 @@ sub is_quantifier {
 
 	# Open parentheses have various interesting possibilities ...
 	if ( $character eq '(' ) {
-	    my $accept;
 
 	    # Sometimes the whole bunch of parenthesized characters seems
 	    # naturally to be a token.
@@ -188,7 +187,6 @@ sub is_quantifier {
 			my $character = $token->content();
 			if ( $character eq ',' ) {
 			    $commas++ and return;
-			    my $prev = $tokenizer->prior( 'content' );
 			    return $tokenizer->prior( 'content' ) ne '{';
 			}
 			return $character =~ m/ \A \d \z /smx;

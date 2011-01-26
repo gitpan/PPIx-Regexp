@@ -37,11 +37,11 @@ use base qw{ PPIx::Regexp::Token::Reference };
 
 use PPIx::Regexp::Constant qw{ RE_CAPTURE_NAME };
 
-our $VERSION = '0.016';
+our $VERSION = '0.017';
 
 sub perl_version_introduced {
     my ( $self ) = @_;
-    ( my $content = $self->content() ) =~ m/ \A [(] \d+ [)] \z /smx
+    $self->content() =~ m/ \A [(] \d+ [)] \z /smx
 	and return '5.005';
     return '5.009005';
 }
