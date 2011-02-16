@@ -13,7 +13,7 @@ use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number refaddr };
 use Test::More 0.40;
 
-our $VERSION = '0.017';
+our $VERSION = '0.018';
 
 our @EXPORT_OK = qw{
     cache_count
@@ -30,6 +30,7 @@ our @EXPORT_OK = qw{
     navigate
     parse
     plan
+    ppi
     result
     skip
     tokenize
@@ -256,6 +257,21 @@ sub parse {		## no critic (RequireArgUnpacking)
     $opt->{test} or return;
     @_ = ( $parse, 'PPIx::Regexp', $regexp );
     goto &isa_ok;
+}
+
+sub ppi {		## no critic (RequireArgUnpacking)
+    my @args = @_;
+    my $expect = pop @args;
+    $result = undef;
+    defined $obj and $result = $obj->ppi()->content();
+    my $safe;
+    if ( defined $result ) {
+	($safe = $result) =~ s/([\\'])/\\$1/smxg;
+    } else {
+	$safe = 'undef';
+    }
+    @_ = ( $result, $expect, "$kind $nav ppi() content '$safe'" );
+    goto &is;
 }
 
 sub result {
@@ -557,6 +573,15 @@ constructor.
 =head2 plan
 
 This subroutine is exported from L<Test::More|Test::More>.
+
+=head2 content
+
+ ppi( '$foo' );
+
+This test calls the current object's C<ppi()> method, and checks to see
+if the content of the returned L<PPI::Document|PPI::Document> is equal
+to the given string. If the current object is C<undef> or does not have
+a C<ppi()> method, the test fails.
 
 =head2 result
 
