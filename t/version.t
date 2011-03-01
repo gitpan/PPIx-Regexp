@@ -32,7 +32,7 @@ sub class ($);
 sub method (@);
 sub token (@);
 
-plan	tests => 394;
+plan	tests => 421;
 
 class	'PPIx::Regexp::Token::Assertion';
 token	'^';
@@ -121,6 +121,12 @@ method	perl_version_removed	=> undef;
 token	'\D';
 method	perl_version_introduced	=> MINIMUM_PERL;	# 5.3.7 perlre
 method	perl_version_removed	=> undef;
+token   '\C';
+method  perl_version_introduced => '5.006';
+method  perl_version_removed    => undef;
+token   '\X';
+method  perl_version_introduced => '5.006';		# 5.6.0 perlre
+method  perl_version_removed    => undef;
 token	'\p{Latin}';
 method	perl_version_introduced	=> '5.006001';		# perl561delta
 method	perl_version_removed	=> undef;
@@ -325,7 +331,10 @@ token	'\c[';
 method	perl_version_introduced => MINIMUM_PERL;	# 5.3.7 perlre
 method	perl_version_removed	=> undef;
 token	'\N{LATIN SMALL LETTER P}';
-method	perl_version_introduced => '5.006';
+method	perl_version_introduced => '5.006001';		# 5.6.1 perldelta
+method	perl_version_removed	=> undef;
+token   '\N{U+32}';
+method  perl_version_introduced => '5.008';		# 5.8.0 charnames
 method	perl_version_removed	=> undef;
 
 class	'PPIx::Regexp::Token::Modifier';
@@ -385,6 +394,24 @@ method	perl_version_introduced	=> '5.013006';	# 5.13.6 perldelta, perlre
 method	perl_version_removed	=> undef;
 token	'(?u)';
 method	perl_version_introduced	=> '5.013006';	# 5.13.6 perldelta, perlre
+method	perl_version_removed	=> undef;
+token	'(?aa)';
+method	perl_version_introduced	=> '5.013010';	# 5.13.10 perldelta
+method	perl_version_removed	=> undef;
+token	'a';
+method	perl_version_introduced	=> '5.013010';	# 5.13.10 perldelta
+method	perl_version_removed	=> undef;
+token	'aa';
+method	perl_version_introduced	=> '5.013010';	# 5.13.10 perldelta
+method	perl_version_removed	=> undef;
+token	'd';
+method	perl_version_introduced	=> '5.013010';	# 5.13.10 perldelta
+method	perl_version_removed	=> undef;
+token	'l';
+method	perl_version_introduced	=> '5.013010';	# 5.13.10 perldelta
+method	perl_version_removed	=> undef;
+token	'u';
+method	perl_version_introduced	=> '5.013010';	# 5.13.10 perldelta
 method	perl_version_removed	=> undef;
 
 class	'PPIx::Regexp::Token::Operator';

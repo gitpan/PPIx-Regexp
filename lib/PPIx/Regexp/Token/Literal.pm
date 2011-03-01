@@ -36,7 +36,7 @@ use base qw{ PPIx::Regexp::Token };
 
 use PPIx::Regexp::Constant qw{ COOKIE_CLASS MINIMUM_PERL };
 
-our $VERSION = '0.018';
+our $VERSION = '0.019';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -47,8 +47,10 @@ sub perl_version_introduced {
 	and return $self->{perl_version_introduced};
     ( my $content = $self->content() ) =~ m/ \A \\ o /smx
 	and return ( $self->{perl_version_introduced} = '5.013003' );
+    $content =~ m/ \A \\ N [{] U [+] /smx
+	and return ( $self->{perl_version_introduced} = '5.008' );
     $content =~ m/ \A \\ N /smx
-	and return ( $self->{perl_version_introduced} = '5.006' );
+	and return ( $self->{perl_version_introduced} = '5.006001' );
     return ( $self->{perl_version_introduced} = MINIMUM_PERL );
 }
 
@@ -140,10 +142,10 @@ The following is from perlop:
 #		    [01234567]{1,3} |	# made from backref by lexer
 		    c [][[:alpha:]\@\\^_?] |	# control characters
 		    x (?: \{ [[:xdigit:]]* \} | [[:xdigit:]]{0,2} ) | # hex
-		    o [{] [01234567]+ [}] |	# octal as of 5.13.4
-		    N (?: \{ (?: [[:alpha:]] [\w\s:()-]* | # must begin w/ alpha
-			U [+] [[:xdigit:]]+ ) \} ) |	# unicode
-		    C (?: \d+ | \{ [^\}] \} )		# octets
+		    o [{] [01234567]+ [}] |	# octal as of 5.13.3
+##		    N (?: \{ (?: [[:alpha:]] [\w\s:()-]* | # must begin w/ alpha
+##			U [+] [[:xdigit:]]+ ) \} ) |	# unicode
+		    N (?: [{] (?= \D ) [^\}]+ [}] )	# unicode
 		) >smx ) ) {
 	    return $accept;
 	}
@@ -278,23 +280,19 @@ because I don't understand the syntax.
 	if ( $indicator eq 'o' ) {
 	    $content =~ m/ \A \\ o [{] ( [01234567]+ ) [}] \z /smx
 		and return oct $1;
-	    return;
+	    return;	# Shouldn't happen, but ...
 	}
 
 	if ( $indicator eq 'N' ) {
-	    $content =~ m/ \A \\ N \{ ( [\w\s:]+ ) \} \z /smx
+	    $content =~ m/ \A \\ N \{ U [+] ( [[:xdigit:]]+ ) \} \z /smx
+		and return hex $1;
+	    $content =~ m/ \A \\ N [{] ( .+ ) [}] \z /smx
 		and return (
 		    _have_charnames_vianame() ?
 			charnames::vianame( $1 ) :
 			undef
 		);
-	    $content =~ m/ \A \\ N \{ U [+] ( [[:xdigit:]]+ ) \} \z /smx
-		and return hex $1;
-	}
-
-	if ( $indicator eq 'C' ) {
-	    # TODO octets
-	    return;
+	    return;	# Shouldn't happen, but ...
 	}
 
 	return ord $indicator;
