@@ -42,7 +42,7 @@ use PPIx::Regexp::Token::Whitespace		();
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.020';
+our $VERSION = '0.021';
 
 {
     # Names of classes containing tokenization machinery. There are few
@@ -260,7 +260,7 @@ sub find_matching_delimiter {
 
     while ( ++$inx < $self->{cursor_limit} ) {
 	my $char = substr $self->{content}, $inx, 1;
-	if ( $char eq '\\' ) {
+	if ( $char eq '\\' && $finish ne '\\' ) {
 	    ++$inx;
 	} elsif ( $bracketed && $char eq $start ) {
 	    ++$nest;
