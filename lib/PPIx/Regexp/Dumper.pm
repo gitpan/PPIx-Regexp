@@ -44,7 +44,7 @@ use PPIx::Regexp;
 use PPIx::Regexp::Tokenizer;
 use PPIx::Regexp::Util qw{ __instance };
 
-our $VERSION = '0.021';
+our $VERSION = '0.021_10';
 
 =head2 new
 
@@ -62,6 +62,15 @@ pairs.
 The following options are recognized:
 
 =over
+
+=item default_modifiers array_reference
+
+THIS FUNCTIONALITY IS EXPERIMENTAL, AND MAY BE CHANGED OR REVOKED
+WITHOUT WARNING.
+
+This argument is a reference to a list of default modifiers to be
+applied to the statement being parsed. See L<PPIx::Regexp|PPIx::Regexp>
+L<new()|PPIx::Regexp/new> for the details.
 
 =item encoding name
 
@@ -168,6 +177,9 @@ ignored.
 	    object => undef,
 	    source => $re,
 	};
+
+	exists $args{default_modifiers}
+	    and $self->{default_modifiers} = $args{default_modifiers};
 
 	foreach my $key ( keys %default ) {
 	    $self->{$key} = exists $args{$key} ?
@@ -329,6 +341,15 @@ sub _tokens_dump {
     return @rslt;
 }
 
+sub _format_default_modifiers {
+    my ( $self, $subr, $elem ) = @_;
+    my $default_modifiers = $self->{default_modifiers} || [];
+    @{ $default_modifiers }
+	or return sprintf '%-8s( %s );', $subr, $self->_safe( $elem );
+    return sprintf '%-8s( %s, default_modifiers => %s );', $subr,
+	$self->_safe( $elem ), $self->_safe( $default_modifiers );
+}
+
 sub _format_modifiers_dump {
     my ( $self, $elem ) = @_;
     my %mods = $elem->modifiers();
@@ -350,10 +371,12 @@ sub _tokens_test {
     not $self->{significant} or $elem->significant() or return;
 
     my @tokens = $elem->tokens();
+
     my @rslt = (
-	'tokenize( ' . $self->_safe( $elem ) . ' );',
-	'count   ( ' . scalar @tokens . ' );',
+	$self->_format_default_modifiers( tokenize => $elem ),
+	sprintf( 'count   ( %d );', scalar @tokens ),
     );
+
     my $inx = 0;
     foreach my $token ( @tokens ) {
 	not $self->{significant} or $token->significant() or next;
@@ -370,7 +393,8 @@ sub PPIx::Regexp::__PPIX_DUMPER__test {
 
     not $dumper->{significant} or $self->significant() or return;
 
-    my $parse = 'parse   ( ' . $dumper->_safe( $self ) . ' );';
+#   my $parse = 'parse   ( ' . $dumper->_safe( $self ) . ' );';
+    my $parse = $dumper->_format_default_modifiers( parse => $self );
     my $fail =  'value   ( failures => [], ' . $self->failures() . ' );';
 
     # Note that we can not use SUPER in the following because SUPER goes
@@ -460,6 +484,7 @@ sub PPIx::Regexp::Node::__PPIX_DUMPER__test {
 		    "$method undef";
 	    }
 	    foreach my $method ( qw{ can_be_quantified is_quantifier } ) {
+##		is_case_sensitive
 		$self->can( $method ) or next;
 		$self->$method() and push @rslt, $method;
 	    }
@@ -553,8 +578,11 @@ sub PPIx::Regexp::Token::__PPIX_DUMPER__dump {
 	}
 
 	foreach my $method (
-	    qw{significant can_be_quantified is_quantifier } ) {
-	    $self->$method() and push @rslt, $method;
+	    qw{ significant can_be_quantified is_quantifier } ) {
+##	    is_case_sensitive
+	    $self->can( $method )
+		and $self->$method()
+		and push @rslt, $method;
 	}
 
 	$self->can( 'ppi' )
@@ -595,7 +623,9 @@ sub PPIx::Regexp::Token::__PPIX_DUMPER__test {
     if ( $dumper->{verbose} ) {
 
 	foreach my $method (
-	    qw{significant can_be_quantified is_quantifier } ) {
+	    qw{ significant can_be_quantified is_quantifier } ) {
+##	    is_case_sensitive
+	    $self->can( $method ) or next;
 	    push @rslt, $self->$method() ?
 	        "true    ( $method => [] );" :
 	        "false   ( $method => [] );";

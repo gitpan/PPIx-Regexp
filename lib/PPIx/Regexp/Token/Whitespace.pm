@@ -37,7 +37,7 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Token };
 
-our $VERSION = '0.021';
+our $VERSION = '0.021_10';
 
 sub significant {
     return;
@@ -48,7 +48,7 @@ sub whitespace {
 }
 
 # Return true if the token can be quantified, and false otherwise
-# sub can_be_quantified { return };
+sub can_be_quantified { return };
 
 # Objects of this class are generated either by the tokenizer itself
 # (when scanning for delimiters) or by PPIx::Regexp::Token::Literal (if

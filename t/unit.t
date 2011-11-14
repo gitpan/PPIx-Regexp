@@ -10,8 +10,6 @@ use PPIx::Regexp::Test;
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 use Scalar::Util qw{ refaddr };
 
-plan( tests => 758 );
-
 my $is_ascii = ord( "\t" ) == 9;	# per perlebcdic
 
 my $have_charnames;
@@ -1142,6 +1140,122 @@ ppi     ( '$foo' );
 	'Ensure we get back the same object from both calls to ppi()' );
 }
 
+##tokenize( '/[[:lower:]]/' );
+##count   ( 7 );
+##choose  ( 3 );
+##class   ( 'PPIx::Regexp::Token::CharClass::POSIX' );
+##content ( '[:lower:]' );
+##true    ( significant => [] );
+##true    ( can_be_quantified => [] );
+##false   ( is_quantifier => [] );
+##true    ( is_case_sensitive => [] );
+##
+##parse   ( '/[[:lower:]]/' );
+##value   ( failures => [], 0 );
+##class   ( 'PPIx::Regexp' );
+##count   ( 3 );
+##choose  ( child => 1 );
+##class   ( 'PPIx::Regexp::Structure::Regexp' );
+##count   ( 1 );
+##choose  ( child => 1, child => 0 );
+##class   ( 'PPIx::Regexp::Structure::CharClass' );
+##count   ( 1 );
+##choose  ( child => 1, child => 0, child => 0 );
+##class   ( 'PPIx::Regexp::Token::CharClass::POSIX' );
+##content ( '[:lower:]' );
+##true    ( significant => [] );
+##true    ( can_be_quantified => [] );
+##false   ( is_quantifier => [] );
+##true    ( is_case_sensitive => [] );
+##
+##tokenize( '/[[:alpha:]]/' );
+##count   ( 7 );
+##choose  ( 3 );
+##class   ( 'PPIx::Regexp::Token::CharClass::POSIX' );
+##content ( '[:alpha:]' );
+##true    ( significant => [] );
+##true    ( can_be_quantified => [] );
+##false   ( is_quantifier => [] );
+##false   ( is_case_sensitive => [] );
+##
+##parse   ( '/[[:alpha:]]/' );
+##value   ( failures => [], 0 );
+##class   ( 'PPIx::Regexp' );
+##count   ( 3 );
+##choose  ( child => 1 );
+##class   ( 'PPIx::Regexp::Structure::Regexp' );
+##count   ( 1 );
+##choose  ( child => 1, child => 0 );
+##class   ( 'PPIx::Regexp::Structure::CharClass' );
+##count   ( 1 );
+##choose  ( child => 1, child => 0, child => 0 );
+##class   ( 'PPIx::Regexp::Token::CharClass::POSIX' );
+##content ( '[:alpha:]' );
+##true    ( significant => [] );
+##true    ( can_be_quantified => [] );
+##false   ( is_quantifier => [] );
+##false   ( is_case_sensitive => [] );
+##
+##tokenize( '/\\p{Lower}/' );
+##count   ( 5 );
+##choose  ( 2 );
+##class   ( 'PPIx::Regexp::Token::CharClass::Simple' );
+##content ( '\\p{Lower}' );
+##true    ( significant => [] );
+##true    ( can_be_quantified => [] );
+##false   ( is_quantifier => [] );
+##true    ( is_case_sensitive => [] );
+##
+##parse   ( '/\\p{Lower}/' );
+##value   ( failures => [], 0 );
+##class   ( 'PPIx::Regexp' );
+##count   ( 3 );
+##choose  ( child => 1 );
+##class   ( 'PPIx::Regexp::Structure::Regexp' );
+##count   ( 1 );
+##choose  ( child => 1, child => 0 );
+##class   ( 'PPIx::Regexp::Token::CharClass::Simple' );
+##content ( '\\p{Lower}' );
+##true    ( significant => [] );
+##true    ( can_be_quantified => [] );
+##false   ( is_quantifier => [] );
+##true    ( is_case_sensitive => [] );
+##
+##tokenize( '/\\p{Alpha}/' );
+##count   ( 5 );
+##choose  ( 2 );
+##class   ( 'PPIx::Regexp::Token::CharClass::Simple' );
+##content ( '\\p{Alpha}' );
+##true    ( significant => [] );
+##true    ( can_be_quantified => [] );
+##false   ( is_quantifier => [] );
+##false   ( is_case_sensitive => [] );
+##
+##parse   ( '/\\p{Alpha}/' );
+##value   ( failures => [], 0 );
+##class   ( 'PPIx::Regexp' );
+##count   ( 3 );
+##choose  ( child => 1 );
+##class   ( 'PPIx::Regexp::Structure::Regexp' );
+##count   ( 1 );
+##choose  ( child => 1, start => [] );
+##count   ( 1 );
+##choose  ( child => 1, child => 0 );
+##class   ( 'PPIx::Regexp::Token::CharClass::Simple' );
+##content ( '\\p{Alpha}' );
+##true    ( significant => [] );
+##true    ( can_be_quantified => [] );
+##false   ( is_quantifier => [] );
+##false   ( is_case_sensitive => [] );
+
+parse   ( '/ . /' );
+false   ( modifier_asserted => 'u' );
+false   ( modifier_asserted => 'x' );
+
+parse   ( '/ . /', default_modifiers => [ 'smxu' ] );
+true    ( modifier_asserted => 'u' );
+true    ( modifier_asserted => 'x' );
+
 SKIP: {
     $is_ascii
 	or skip(
@@ -1328,6 +1442,8 @@ EOD
 }
 
 finis   ();
+
+done_testing;
 
 1;
 
