@@ -42,7 +42,7 @@ use PPIx::Regexp::Token::Whitespace		();
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.021_10';
+our $VERSION = '0.021_11';
 
 {
     # Names of classes containing tokenization machinery. There are few
@@ -549,7 +549,7 @@ sub __PPIX_TOKENIZER__init {
 	}
 	$tokenizer->{effective_modifiers} =
 	    PPIx::Regexp::Token::Modifier::__aggregate_modifiers (
-		'^', @mods );
+		@mods );
 	$tokenizer->{modifiers} = [
 	    { %{ $tokenizer->{effective_modifiers} } },
 	];
@@ -756,9 +756,6 @@ a leading dash. Supported options are:
 =over
 
 =item default_modifiers array_reference
-
-THIS FUNCTIONALITY IS EXPERIMENTAL, AND MAY BE CHANGED OR REVOKED
-WITHOUT WARNING
 
 This argument specifies default statement modifiers. It is optional, but
 if specified must be an array reference. See the
