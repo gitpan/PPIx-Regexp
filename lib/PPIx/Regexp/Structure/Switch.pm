@@ -25,10 +25,6 @@ will be the first child.
 This class provides no public methods beyond those provided by its
 superclass.
 
-This class provides the following public methods. Methods not documented
-here are private, and unsupported in the sense that the author reserves
-the right to change or remove them without notice.
-
 =cut
 
 package PPIx::Regexp::Structure::Switch;
@@ -44,7 +40,7 @@ use PPIx::Regexp::Constant qw{
     TOKEN_UNKNOWN
 };
 
-our $VERSION = '0.021_11';
+our $VERSION = '0.022';
 
 sub __PPIX_LEXER__finalize {
     my ( $self ) = @_;

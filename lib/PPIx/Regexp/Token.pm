@@ -38,9 +38,8 @@ L<PPIx::Regexp|PPIx::Regexp> package.
 
 =head1 METHODS
 
-This class provides the following public methods. Methods not documented
-here are private, and unsupported in the sense that the author reserves
-the right to change or remove them without notice.
+This class provides no public methods beyond those provided by its
+superclass.
 
 =cut
 
@@ -51,7 +50,7 @@ use warnings;
 
 use base qw{PPIx::Regexp::Element};
 
-our $VERSION = '0.021_11';
+our $VERSION = '0.022';
 
 sub _new {
     my ( $class, $content ) = @_;

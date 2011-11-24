@@ -9,7 +9,7 @@ use base qw{ PPIx::Regexp::Token::CharClass::POSIX };
 
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 
-our $VERSION = '0.021_11';
+our $VERSION = '0.022';
 
 sub perl_version_introduced {
 #   my ( $self ) = @_;
@@ -44,6 +44,8 @@ PPIx::Regexp::Token::CharClass::POSIX::Unknown - Represent an unknown or unsuppo
 
 C<PPIx::Regexp::Token::CharClass::POSIX::Unknown> is a
 L<PPIx::Regexp::Token::CharClass::POSIX|PPIx::Regexp::Token::CharClass::POSIX>.
+
+C<PPIx::Regexp::Token::CharClass::POSIX::Unknown> has no descendants.
 
 =head1 DESCRIPTION
 

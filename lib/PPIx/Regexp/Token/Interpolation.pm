@@ -37,7 +37,7 @@ use base qw{ PPIx::Regexp::Token::Code };
 use PPI::Document;
 use PPIx::Regexp::Constant qw{ COOKIE_CLASS TOKEN_LITERAL MINIMUM_PERL };
 
-our $VERSION = '0.021_11';
+our $VERSION = '0.022';
 
 # Return true if the token can be quantified, and false otherwise
 # This can be quantified because it might interpolate a quantifiable
@@ -63,8 +63,8 @@ not be the same as the content of the original
 C<PPIx::Regexp::Token::Interpolation>. This can happen because
 interpolated variable names may be enclosed in curly brackets, but this
 does not happen in normal code. For example, in C</${foo}bar/>, the
-content of the C<PPIx> object will be C<'${foo}'>, but the content of
-the C<PPI::Document> will be C<'$foo'>.
+content of the C<PPIx::Regexp::Token::Interpolation> object will be
+C<'${foo}'>, but the content of the C<PPI::Document> will be C<'$foo'>.
 
 =cut
 

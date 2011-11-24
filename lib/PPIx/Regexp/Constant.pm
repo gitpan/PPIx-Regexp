@@ -3,7 +3,7 @@ package PPIx::Regexp::Constant;
 use strict;
 use warnings;
 
-our $VERSION = '0.021_11';
+our $VERSION = '0.022';
 
 use base qw{ Exporter };
 
@@ -104,7 +104,7 @@ C<\Q> is encountered, and it persists until the next C<\E>.
 =head2 MINIMUM_PERL
 
 The minimum version of Perl understood by this parser, as a float. It is
-currently set to 5.006, since that is the minimum version of Perl
+currently set to 5.000, since that is the minimum version of Perl
 accessible to the author.
 
 =head2 MODIFIER_GROUP_MATCH_SEMANTICS

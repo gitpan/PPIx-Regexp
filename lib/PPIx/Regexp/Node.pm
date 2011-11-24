@@ -41,7 +41,7 @@ use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ refaddr };
 
-our $VERSION = '0.021_11';
+our $VERSION = '0.022';
 
 sub _new {
     my ( $class, @children ) = @_;
@@ -281,7 +281,7 @@ sub last_element {
 This method returns the maximum value of C<perl_version_introduced>
 returned by any of its elements. In other words, it returns the minimum
 version of Perl under which this node is valid. If there are no
-elements, 5.006 is returned, since that is the minimum value of Perl
+elements, 5.000 is returned, since that is the minimum value of Perl
 supported by this package.
 
 =cut
