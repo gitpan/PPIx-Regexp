@@ -60,7 +60,7 @@ use PPIx::Regexp::Token::Unmatched			();
 use PPIx::Regexp::Tokenizer				();
 use PPIx::Regexp::Util qw{ __instance };
 
-our $VERSION = '0.024';
+our $VERSION = '0.025';
 
 =head2 new
 
@@ -182,8 +182,10 @@ sub lex {
 	);
     }
 
-    # Accept the modifiers, we hope.
-    push @content, $self->_get_token();
+    # Accept the modifiers (we hope!) plus any trailing white space.
+    while ( my $token = $self->_get_token() ) {
+	push @content, $token;
+    }
 
     # Let all the elements finalize themselves, recording any additional
     # errors as they do so.
@@ -530,7 +532,7 @@ Thomas R. Wyant, III F<wyant at cpan dot org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2011 by Thomas R. Wyant, III
+Copyright (C) 2009-2012 by Thomas R. Wyant, III
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl 5.10.0. For more details, see the full text
