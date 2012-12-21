@@ -42,7 +42,7 @@ use PPIx::Regexp::Token::Whitespace		();
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.028';
+our $VERSION = '0.028_01';
 
 {
     # Names of classes containing tokenization machinery. There are few
@@ -332,6 +332,11 @@ sub find_regexp {
 ##  my @data = ( $-[0], $+[0] );
 ##  return wantarray ? @data : $data[1];
     return wantarray ? ( $-[0] + 0, $+[0] + 0 ) : $+[0] + 0;
+}
+
+sub get_start_delimiter {
+    my ( $self ) = @_;
+    return $self->{delimiter_start};
 }
 
 sub get_token {
@@ -987,6 +992,13 @@ demonstrates.
 This method returns the offset from the current position in the content
 string to the matching delimiter (which will always be positive), or
 undef if no match can be found.
+
+=head2 get_start_delimiter
+
+ my $start_delimiter = $tokenizer->get_start_delimiter();
+
+This method is used by tokenizers to access the start delimiter for the
+regular expression.
 
 =head2 get_token
 
