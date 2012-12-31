@@ -50,7 +50,7 @@ use warnings;
 
 use base qw{PPIx::Regexp::Element};
 
-our $VERSION = '0.028_01';
+our $VERSION = '0.028_02';
 
 sub _new {
     my ( $class, $content ) = @_;
@@ -67,6 +67,13 @@ sub _new {
 sub content {
     my ( $self ) = @_;
     return $self->{content};
+}
+
+sub unescaped_content {
+    my ( $self ) = @_;
+    my $content = $self->content();
+    $content =~ s/ \\ (?= . ) //smxg;
+    return $content;
 }
 
 

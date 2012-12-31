@@ -41,7 +41,7 @@ use Scalar::Util qw{ refaddr weaken };
 
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 
-our $VERSION = '0.028_01';
+our $VERSION = '0.028_02';
 
 =head2 ancestor_of
 
@@ -281,6 +281,16 @@ sub top {
 	$kid = $parent;
     }
     return $kid;
+}
+
+=head2 unescaped_content
+
+This method returns the content of the element, unescaped.
+
+=cut
+
+sub unescaped_content {
+    return;
 }
 
 =head2 whitespace

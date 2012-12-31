@@ -41,7 +41,7 @@ use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ refaddr };
 
-our $VERSION = '0.028_01';
+our $VERSION = '0.028_02';
 
 sub _new {
     my ( $class, @children ) = @_;
@@ -385,6 +385,11 @@ sub schildren {
 sub tokens {
     my ( $self ) = @_;
     return ( map { $_->tokens() } $self->elements() );
+}
+
+sub unescaped_content {
+    my ( $self ) = @_;
+    return join '', map { $_->unescaped_content() } $self->elements();
 }
 
 # Help for nav();

@@ -43,7 +43,7 @@ use base qw{ PPIx::Regexp::Token::GroupType };
 
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 
-our $VERSION = '0.028_01';
+our $VERSION = '0.028_02';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -57,7 +57,8 @@ our $VERSION = '0.028_01';
 
     sub perl_version_introduced {
 	my ( $self ) = @_;
-	return $perl_version_introduced{ $self->content() } || '5.005';
+	return $perl_version_introduced{ $self->unescaped_content() } ||
+	    '5.005';
     }
 
 }
@@ -73,6 +74,8 @@ our $VERSION = '0.028_01';
 	return $perl_version_removed{ $self->content() };
     }
 }
+
+=begin comment
 
 sub __PPIX_TOKENIZER__regexp {
     my ( $class, $tokenizer, $character ) = @_;
@@ -93,6 +96,25 @@ sub __PPIX_TOKENIZER__regexp {
     }
 
     return;
+}
+
+=end comment
+
+=cut
+
+sub __defining_string {
+    return (
+	{ suffix	=> '{' },
+	'?',
+	'??',
+	'?p',
+    );
+}
+
+sub __expect_after_match {
+    return ( qw{
+	    PPIx::Regexp::Token::Code
+	} );
 }
 
 1;

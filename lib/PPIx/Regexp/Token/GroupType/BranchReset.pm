@@ -34,7 +34,7 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Token::GroupType };
 
-our $VERSION = '0.028_01';
+our $VERSION = '0.028_02';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -43,22 +43,8 @@ sub perl_version_introduced {
     return '5.009005';
 }
 
-my %matcher = (
-    q{?}	=> qr{ \A \\ \? \| }smx,
-    q{|}	=> qr{ \A \? \\ \| }smx,
-);
-
-sub __PPIX_TOKENIZER__regexp {
-    my ( $class, $tokenizer, $character ) = @_;
-
-    my $re = $matcher{ $tokenizer->get_start_delimiter() } ||
-	qr{ \A \? \| }smx;
-
-    if ( my $accept = $tokenizer->find_regexp( $re ) ) {
-	return $accept;
-    }
-
-    return;
+sub __defining_string {
+    return '?|';
 }
 
 1;
