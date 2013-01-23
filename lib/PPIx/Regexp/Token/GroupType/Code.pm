@@ -43,7 +43,7 @@ use base qw{ PPIx::Regexp::Token::GroupType };
 
 use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
 
-our $VERSION = '0.029';
+our $VERSION = '0.030';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -111,10 +111,10 @@ sub __defining_string {
     );
 }
 
-sub __expect_after_match {
-    return ( qw{
-	    PPIx::Regexp::Token::Code
-	} );
+sub __match_setup {
+    my ( $class, $tokenizer ) = @_;
+    $tokenizer->expect( qw{ PPIx::Regexp::Token::Code } );
+    return;
 }
 
 1;
