@@ -42,13 +42,13 @@ use PPIx::Regexp::Token::Whitespace		();
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.033';
+our $VERSION = '0.033_01';
 
 {
     # Names of classes containing tokenization machinery. There are few
     # known ordering requirements, since each class recognizes its own,
     # and I have tried to prevent overlap. Absent such constraints, the
-    # order is in percieved frequency of acceptance, to keep the search
+    # order is in perceived frequency of acceptance, to keep the search
     # as short as possible. If I were conscientious I would gather
     # statistics on this.
     my @classes = (	# TODO make readonly when acceptable way appears
