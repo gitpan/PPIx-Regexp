@@ -35,9 +35,12 @@ use warnings;
 use base qw{ PPIx::Regexp::Token::Reference };
 
 use Carp qw{ confess };
-use PPIx::Regexp::Constant qw{ MINIMUM_PERL RE_CAPTURE_NAME };
+use PPIx::Regexp::Constant qw{
+    MINIMUM_PERL RE_CAPTURE_NAME
+    TOKEN_LITERAL TOKEN_UNKNOWN
+};
 
-our $VERSION = '0.034';
+our $VERSION = '0.035';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -117,6 +120,55 @@ sub __PPIX_TOKENIZER__repl {
     $tokenizer->interpolates() and goto &__PPIX_TOKENIZER__regexp;
 
     return;
+}
+
+# Called by the lexer to disambiguate between captures, literals, and
+# whatever. We have to return the number of tokens reblessed to
+# TOKEN_UNKNOWN (i.e. either 0 or 1) because we get called after the
+# parse is finalized.
+sub __PPIX_LEXER__rebless {
+    my ( $self, %arg ) = @_;
+
+    # Handle named back references
+    if ( $self->is_named() ) {
+	$arg{capture_name}{$self->name()}
+	    and return 0;
+	return $self->__error();
+    }
+
+    # Get the absolute capture group number.
+    my $absolute = $self->absolute();
+
+    # If it is zero or negative, we have a relateive reference to a
+    # non-existent capture group.
+    $absolute <= 0
+	and return $self->__error();
+
+    # If the absolute number is less than or equal to the maximum
+    # capture group number, we are good.
+    $absolute <= $arg{max_capture}
+	and return 0;
+
+    # It's not a valid capture. If it's an octal literal, rebless it so.
+    # Note that we can't rebless single-digit numbers, since they can't
+    # be octal literals.
+    my $content = $self->content();
+    if ( $content =~ m/ \A \\ \d{2,} \z /smx && $content !~ m/ [89] /smx ) {
+	bless $self, TOKEN_LITERAL;
+	return 0;
+    }
+
+    # Anything else is an error.
+    return $self->__error();
+}
+
+sub __error {
+    my ( $self, $msg ) = @_;
+    defined $msg
+	or $msg = 'No corresponding capture group';
+    $self->{error} = $msg;
+    bless $self, TOKEN_UNKNOWN;
+    return 1;
 }
 
 1;

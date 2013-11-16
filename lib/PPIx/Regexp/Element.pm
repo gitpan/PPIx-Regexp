@@ -35,13 +35,14 @@ use warnings;
 
 use 5.006;
 
+use Carp;
 use List::MoreUtils qw{ firstidx };
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ refaddr weaken };
 
-use PPIx::Regexp::Constant qw{ MINIMUM_PERL };
+use PPIx::Regexp::Constant qw{ MINIMUM_PERL TOKEN_UNKNOWN };
 
-our $VERSION = '0.034';
+our $VERSION = '0.035';
 
 =head2 ancestor_of
 
@@ -120,6 +121,21 @@ sub descendant_of {
     return $node->ancestor_of( $self );
 }
 
+=head2 error
+
+ say $token->error();
+
+If an element is one of the classes that represents a parse error, this
+method B<may> return a brief message saying why. Otherwise it will
+return C<undef>.
+
+=cut
+
+sub error {
+    my ( $self ) = @_;
+    return $self->{error};
+}
+
 
 =head2 is_quantifier
 
@@ -134,6 +150,47 @@ greediness token is possible.
 =cut
 
 sub is_quantifier { return; }
+
+=head2 modifier_asserted
+
+ $token->modifier_asserted( 'i' )
+     and print "Matched without regard to case.\n";
+
+This method returns true if the given modifier is in effect for the
+element, and false otherwise.
+
+What it does is to walk backwards from the element until it finds a
+modifier object that specifies the modifier, whether asserted or
+negated. and returns the specified value. If nobody specifies the
+modifier, it returns C<undef>.
+
+This method will not work reliably if called on tokenizer output.
+
+=cut
+
+sub modifier_asserted {
+    my ( $self, $modifier ) = @_;
+
+    defined $modifier
+	or croak 'Modifier must be defined';
+
+    my $elem = $self;
+
+    while ( $elem ) {
+	if ( $elem->can( '__ducktype_modifier_asserted' ) ) {
+	    my $val;
+	    defined( $val = $elem->__ducktype_modifier_asserted( $modifier ) )
+		and return $val;
+	}
+	if ( my $prev = $elem->sprevious_sibling() ) {
+	    $elem = $prev;
+	} else {
+	    $elem = $elem->parent();
+	}
+    }
+
+    return;
+}
 
 =head2 next_sibling
 
@@ -400,6 +457,19 @@ sub __impose_defaults {
 	}
     }
     return;
+}
+
+# Bless into TOKEN_UNKNOWN, record error message, return 1.
+sub __error {
+    my ( $self, $msg ) = @_;
+    $self->isa( 'PPIx::Token::Node' )
+	and confess 'Programming error - __error() must be overridden',
+	    ' for class ', ref $self;
+    defined $msg
+	or $msg = 'Was ' . ref $self;
+    $self->{error} = $msg;
+    bless $self, TOKEN_UNKNOWN;
+    return 1;
 }
 
 # Called by the lexer to record the capture number.

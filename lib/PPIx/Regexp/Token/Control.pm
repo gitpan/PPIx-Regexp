@@ -45,7 +45,7 @@ use PPIx::Regexp::Constant qw{
     COOKIE_QUOTE MINIMUM_PERL TOKEN_LITERAL TOKEN_UNKNOWN
 };
 
-our $VERSION = '0.034';
+our $VERSION = '0.035';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -92,7 +92,10 @@ sub __PPIX_TOKENIZER__regexp {
     # do. If there is no next character, we do not know what to call the
     # back slash.
     my $control = $tokenizer->peek( 1 )
-	or return $reject->( 1, TOKEN_UNKNOWN );
+	or return $reject->( 1, TOKEN_UNKNOWN, {
+		error => 'Trailing back slash'
+	    },
+	);
 
     # We reject any escapes that do not represent controls.
     $is_control{$control} or return $reject->( 2 );

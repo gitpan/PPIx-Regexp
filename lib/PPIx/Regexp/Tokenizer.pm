@@ -42,7 +42,7 @@ use PPIx::Regexp::Token::Whitespace		();
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.034';
+our $VERSION = '0.035';
 
 {
     # Names of classes containing tokenization machinery. There are few
@@ -540,7 +540,10 @@ sub __PPIX_TOKENIZER__init {
     $tokenizer->{mode} = 'kaput';
     $tokenizer->{content} =~ m/ \A \s* ( qr | m | s )? ( \s* ) ( [^\w\s] ) /smx
 	or return $tokenizer->make_token(
-	    length( $tokenizer->{content} ), TOKEN_UNKNOWN );
+	    length( $tokenizer->{content} ), TOKEN_UNKNOWN, {
+		error	=> 'Tokenizer found illegal first characters',
+	    },
+	);
 #   my ( $type, $white, $delim ) = ( $1, $2, $3 );
     my ( $type, $white ) = ( $1, $2 );
     my $start_pos = defined $-[1] ? $-[1] :
@@ -639,7 +642,10 @@ sub __PPIX_TOKEN_FALLBACK__regexp {
     }
 
     # Any normal character is unknown.
-    return $tokenizer->make_token( 1, TOKEN_UNKNOWN );
+    return $tokenizer->make_token( 1, TOKEN_UNKNOWN, {
+	    error	=> 'Tokenizer found unexpected literal',
+	},
+    );
 }
 
 sub __PPIX_TOKEN_FALLBACK__repl {

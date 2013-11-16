@@ -5,13 +5,15 @@ use warnings;
 
 use base qw{ Module::Build };
 
-our $VERSION = '0.034';
+our $VERSION = '0.035';
 
 use Carp;
 
 
 sub ACTION_authortest {
     my ( $self, @args ) = @_;
+
+    local $ENV{AUTHOR_TESTING} = 1;
 
     $self->depends_on( 'build' );
     $self->test_files( qw{ t xt/author } );

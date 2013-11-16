@@ -37,7 +37,7 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Token };
 
-our $VERSION = '0.034';
+our $VERSION = '0.035';
 
 # Return true if the token can be quantified, and false otherwise
 sub can_be_quantified { return };
@@ -54,6 +54,18 @@ token.
 sub ordinal {
     my ( $self ) = @_;
     return ord $self->content();
+}
+
+sub __PPIX_TOKEN__post_make {
+    my ( $self, $tokenizer, $arg ) = @_;
+    my $msg = $arg->{error};
+    use Carp;
+    defined $msg
+	or Carp::cluck( 'Making unknown token with no error message' );
+    defined $msg
+	or $msg = 'Unspecified error';
+    $self->{error} = $msg;
+    return;
 }
 
 # Since the lexer does not count these on the way in (because it needs

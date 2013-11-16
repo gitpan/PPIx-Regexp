@@ -38,7 +38,7 @@ use PPIx::Regexp::Constant qw{
     COOKIE_CLASS COOKIE_REGEX_SET MINIMUM_PERL TOKEN_UNKNOWN
 };
 
-our $VERSION = '0.034';
+our $VERSION = '0.035';
 
 # Return true if the token can be quantified, and false otherwise
 # sub can_be_quantified { return };
@@ -135,7 +135,10 @@ sub __PPIX_TOKENIZER__regexp {
 	return $tokenizer->cookie( COOKIE_CLASS ) ?
 	    length $character :
 	    $tokenizer->make_token(
-		length $character, TOKEN_UNKNOWN );
+		length $character, TOKEN_UNKNOWN, {
+			error	=> 'Literal not valid in Regex set',
+		    },
+		);
 
     } else {
 

@@ -88,7 +88,7 @@ use PPIx::Regexp::Constant qw{
     MODIFIER_GROUP_MATCH_SEMANTICS
 };
 
-our $VERSION = '0.034';
+our $VERSION = '0.035';
 
 # Define modifiers that are to be aggregated internally for ease of
 # computation.
@@ -129,6 +129,12 @@ sub asserts {
 	    keys %{ $self->{modifiers} } );
     }
 }
+
+# This is a kluge for both determining whether the object asserts
+# modifiers (hence the 'ductype') and determining whether the given
+# modifier is actually asserted. The signature is the invocant and the
+# modifier name, which must not be undef. The return is a boolean.
+*__ducktype_modifier_asserted = \&asserts;
 
 sub __asserts {
     my ( $present, $modifier ) = @_;
@@ -281,12 +287,18 @@ sub __aggregate_modifiers {
 
 	# Have to do the global match rather than a split, because the
 	# expression modifiers come through here too, and we need to
-	# distinguish between s/.../.../e and s/.../.../ee.
+	# distinguish between s/.../.../e and s/.../.../ee. But the
+	# modifiers can be randomized (that is, /eie is the same as
+	# /eei), so we reorder the content first.
+	$content = join '', sort split qr{}smx, $content;
 	my $value = 1;
 	while ( $content =~ m/ ( ( [[:alpha:]-] ) \2* ) /smxg ) {
 	    if ( '-' eq $1 ) {
 		$value = 0;
 	    } elsif ( my $bin = $aggregate{$1} ) {
+		# Yes, technically the match semantics stuff can't be
+		# negated in a regex. But it can in a 'use re', which
+		# also comes through here, so we have to handle it.
 		$present{$bin} = $value ? $1 : undef;
 	    } else {
 		$present{$1} = $value;
