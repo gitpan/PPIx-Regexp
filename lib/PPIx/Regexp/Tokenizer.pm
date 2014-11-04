@@ -42,7 +42,7 @@ use PPIx::Regexp::Token::Whitespace		();
 use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number };
 
-our $VERSION = '0.036';
+our $VERSION = '0.036_01';
 
 {
     # Names of classes containing tokenization machinery. There are few
@@ -420,7 +420,8 @@ sub match {
 
 sub modifier {
     my ( $self, $modifier ) = @_;
-    return $self->{modifiers}[-1]{$modifier};
+    return PPIx::Regexp::Token::Modifier::__asserts(
+	$self->{modifiers}[-1], $modifier );
 }
 
 sub modifier_duplicate {
@@ -722,9 +723,9 @@ sub __PPIX_TOKENIZER__finish {
 	    $tokenizer->{delimiter_re} = undef;
 	}
 
-	if ( $tokenizer->modifier( 'e' ) ) {
-	    # With /e, the replacement portion is code. We make it all
-	    # into one big PPIx::Regexp::Token::Code, slap on the
+	if ( $tokenizer->modifier( 'e*' ) ) {
+	    # With /e or /ee, the replacement portion is code. We make
+	    # it all into one big PPIx::Regexp::Token::Code, slap on the
 	    # trailing delimiter and modifiers, and return it all.
 	    push @tokens, $tokenizer->make_token(
 		$tokenizer->{cursor_limit} - $tokenizer->{cursor_curr},
@@ -869,6 +870,13 @@ L<PPIx::Regexp::Token::Unknown|PPIx::Regexp::Token::Unknown>.
 
 This method returns true if the given modifier character was found on
 the end of the regular expression, and false otherwise.
+
+Starting with version 0.036_01, if the argument is a
+single-character modifier followed by an asterisk (intended as a wild
+card character), the return is the number of times that modifier
+appears. In this case an exception will be thrown if you specify a
+multi-character modifier (e.g.  C<'ee*'>), or if you specify one of the
+match semantics modifiers (e.g.  C<'a*'>).
 
 =head2 next_token
 

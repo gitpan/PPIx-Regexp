@@ -13,7 +13,7 @@ use PPIx::Regexp::Util qw{ __instance };
 use Scalar::Util qw{ looks_like_number refaddr };
 use Test::More 0.88;
 
-our $VERSION = '0.036';
+our $VERSION = '0.036_01';
 
 our @EXPORT_OK = qw{
     cache_count
@@ -22,6 +22,7 @@ our @EXPORT_OK = qw{
     cmp_ok
     content
     count
+    diag
     different
     done_testing
     dump_result
@@ -29,6 +30,7 @@ our @EXPORT_OK = qw{
     finis
     equals
     navigate
+    note
     parse
     plan
     ppi
