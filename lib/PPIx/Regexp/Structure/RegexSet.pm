@@ -5,7 +5,7 @@ use warnings;
 
 use base qw{ PPIx::Regexp::Structure };
 
-our $VERSION = '0.036_01';
+our $VERSION = '0.037';
 
 1;
 
@@ -53,6 +53,10 @@ will track the change, even if they are incompatible with the previous
 parse. If this functionality is retracted and the syntax used for
 something else, C<PPIx::Regexp> will forget completely about regex
 character sets.
+
+At some point, the documentation started calling these "Extended
+Bracketed Character Classes", and documenting them in
+L<perlrecharclass|perlrecharclass>.
 
 =head1 METHODS
 
